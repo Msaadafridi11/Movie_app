@@ -6,7 +6,9 @@ class MovieRepository {
 
   MovieRepository(this.api);
 
-  Future<List<Results>> fetchMovies() async {
-    return await api.getMovie();
-  }
+  Future<List<Results>> fetchPopularMovies() async => await api.getPopularMovies();
+  Future<List<Results>> fetchTrendingMovies() async => await api.getTrendingMovies();
+  Future<List<Results>> fetchNowPlayingMovies() async => await api.getNowPlayingMovies();
+  Future<List<Results>> fetchSimilarMovies(int id) async => await api.getSimilarMovies(id);
+  Future<List<Results>> searchMovies(String query) async => await api.searchMovies(query);
 }
