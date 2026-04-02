@@ -49,4 +49,21 @@ class MovieApiService {
     );
     return (response.data['results'] as List).map((e) => Results.fromJson(e)).toList();
   }
-}
+
+  Future<String?> getMovieTrailer(int id) async {
+    final response = await client.dio.get(
+      "/movie/$id/videos",
+      queryParameters: {"api_key": ApiConstants.apiKey},
+    );
+    final results = response.data['results'] as List;
+    if (results.isEmpty) return null;
+
+    final trailer = results.firstWhere(
+      (v) => v['type'] == 'Trailer' && v['site'] == 'YouTube',
+      orElse: () => results.first,
+    );
+    
+    return trailer['site'] == 'YouTube' ? trailer['key'] : null;
+  }
+}
+

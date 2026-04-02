@@ -10,6 +10,9 @@ class VideoViewModel extends ChangeNotifier {
   Results? _currentMovie;
   Results? get currentMovie => _currentMovie;
 
+  String? _currentTrailerKey;
+  String? get currentTrailerKey => _currentTrailerKey;
+
   List<Results> _relatedMovies = [];
   List<Results> get relatedMovies => _relatedMovies;
 
@@ -22,13 +25,18 @@ class VideoViewModel extends ChangeNotifier {
   Future<void> playMovie(Results movie) async {
     _currentMovie = movie;
     _relatedMovies = [];
+    _currentTrailerKey = null;
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
       if (movie.id != null) {
-        _relatedMovies = await _repository.fetchSimilarMovies(movie.id!);
+        final similar = _repository.fetchSimilarMovies(movie.id!);
+        final trailerKey = _repository.fetchMovieTrailer(movie.id!);
+        
+        _relatedMovies = await similar;
+        _currentTrailerKey = await trailerKey;
       }
     } catch (e) {
       _errorMessage = e.toString();

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:movie_app/viewmodel/main_viewmodel.dart';
 import 'package:movie_app/views/screens/home_screen.dart';
 import 'package:movie_app/views/screens/search_screen.dart';
+import 'package:movie_app/views/screens/favorites_screen.dart';
 
 class MainScreen extends StatelessWidget {
   const MainScreen({super.key});
@@ -12,7 +13,7 @@ class MainScreen extends StatelessWidget {
     final List<Widget> screens = [
       const HomeScreen(),
       const SearchScreen(),
-      const Scaffold(body: Center(child: Text('Favorites', style: TextStyle(color: Colors.white)))),
+      const FavoritesScreen(),
       const Scaffold(body: Center(child: Text('Profile', style: TextStyle(color: Colors.white)))),
     ];
 

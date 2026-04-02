@@ -9,6 +9,7 @@ import 'package:movie_app/viewmodel/movie_viewmodel.dart';
 import 'package:movie_app/viewmodel/main_viewmodel.dart';
 import 'package:movie_app/viewmodel/search_viewmodel.dart';
 import 'package:movie_app/viewmodel/video_viewmodel.dart';
+import 'package:movie_app/viewmodel/favorite_viewmodel.dart';
 import 'package:movie_app/views/screens/main_screen.dart';
 
 void main() {
@@ -53,6 +54,9 @@ class MyApp extends StatelessWidget {
                 create: (_) => VideoViewModel(
                   context.read<MovieRepository>(),
                 ),
+              ),
+              ChangeNotifierProvider<FavoriteViewModel>(
+                create: (_) => FavoriteViewModel(),
               ),
             ],
             child: MaterialApp(

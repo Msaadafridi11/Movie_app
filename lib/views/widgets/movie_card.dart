@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:movie_app/core/constants/api_constants.dart';
 import 'package:movie_app/data/models/movie_model.dart';
 import 'package:movie_app/views/screens/detail_screen.dart';
+import 'package:movie_app/viewmodel/favorite_viewmodel.dart';
 
 class MovieCard extends StatelessWidget {
   final Results movie;
@@ -35,19 +37,48 @@ class MovieCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: movie.posterPath != null
-                    ? Image.network(
-                        '${ApiConstants.imageBaseUrl}${movie.posterPath}',
-                        width: width,
-                        fit: BoxFit.cover,
-                      )
-                    : Container(
-                        width: width,
-                        color: Colors.grey.shade900,
-                        child: const Icon(Icons.movie, color: Colors.grey),
-                      ),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: movie.posterPath != null
+                        ? Image.network(
+                            '${ApiConstants.imageBaseUrl}${movie.posterPath}',
+                            width: width,
+                            fit: BoxFit.cover,
+                          )
+                        : Container(
+                            width: width,
+                            color: Colors.grey.shade900,
+                            child: const Icon(Icons.movie, color: Colors.grey),
+                          ),
+                  ),
+                  Positioned(
+                    top: 4,
+                    right: 4,
+                    child: Consumer<FavoriteViewModel>(
+                      builder: (context, favVM, child) {
+                        final isFav = favVM.isFavorite(movie);
+                        return GestureDetector(
+                          onTap: () => favVM.toggleFavorite(movie),
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: Colors.black45,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              isFav ? Icons.favorite : Icons.favorite_border,
+                              color: isFav ? Colors.redAccent : Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 8),
