@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:youtube_player_iframe/youtube_player_iframe.dart';
+import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:movie_app/viewmodel/video_viewmodel.dart';
 import 'package:movie_app/core/constants/api_constants.dart';
 import 'package:movie_app/data/models/movie_model.dart';
@@ -48,7 +48,7 @@ class _VideoScreenState extends State<VideoScreen> {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // TOP: 16:9 Youtube Iframe Player (Supports Flutter Web)
+                // TOP: 16:9 Youtube Player
                 AspectRatio(
                   aspectRatio: 16 / 9,
                   child: Stack(
@@ -192,13 +192,13 @@ class _TrailerPlayerWidgetState extends State<TrailerPlayerWidget> {
   @override
   void initState() {
     super.initState();
-    _controller = YoutubePlayerController.fromVideoId(
-      videoId: widget.trailerKey,
-      autoPlay: true,
-      params: const YoutubePlayerParams(
-        showControls: true,
-        showFullscreenButton: true,
+    _controller = YoutubePlayerController(
+      initialVideoId: widget.trailerKey,
+      flags: const YoutubePlayerFlags(
+        autoPlay: true,
         mute: false,
+        enableCaption: false,
+        isLive: false,
       ),
     );
   }
@@ -207,13 +207,13 @@ class _TrailerPlayerWidgetState extends State<TrailerPlayerWidget> {
   void didUpdateWidget(TrailerPlayerWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.trailerKey != widget.trailerKey) {
-      _controller.loadVideoById(videoId: widget.trailerKey);
+      _controller.load(widget.trailerKey);
     }
   }
 
   @override
   void dispose() {
-    _controller.close();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -221,7 +221,12 @@ class _TrailerPlayerWidgetState extends State<TrailerPlayerWidget> {
   Widget build(BuildContext context) {
     return YoutubePlayer(
       controller: _controller,
-      aspectRatio: 16 / 9,
+      showVideoProgressIndicator: true,
+      progressIndicatorColor: Colors.redAccent,
+      progressColors: const ProgressBarColors(
+        playedColor: Colors.redAccent,
+        handleColor: Colors.redAccent,
+      ),
     );
   }
 }
