@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:movie_app/viewmodel/movie_viewmodel.dart';
+import 'package:movie_app/viewmodel/main_viewmodel.dart';
+import 'package:movie_app/viewmodel/video_viewmodel.dart';
+import 'package:movie_app/viewmodel/favorite_viewmodel.dart';
 import 'package:movie_app/views/widgets/movie_card.dart';
 import 'package:movie_app/core/constants/api_constants.dart';
+import 'package:movie_app/views/screens/detail_screen.dart';
+import 'package:movie_app/views/screens/video_screen.dart';
+import 'package:movie_app/data/models/movie_model.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,16 +26,52 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  void _navigateToDetail(BuildContext context, Results movie) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => DetailScreen(movie: movie)),
+    );
+  }
+
+  void _navigateToVideo(BuildContext context, Results movie) {
+    context.read<VideoViewModel>().playMovie(movie);
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const VideoScreen()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
+      backgroundColor: const Color(0xFF141414),
       appBar: AppBar(
-        title: const Text('Movies'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: const Text(
+          'MOVIE',
+          style: TextStyle(
+            color: Colors.redAccent,
+            fontWeight: FontWeight.bold,
+            fontSize: 24,
+            letterSpacing: 1.2,
+          ),
+        ),
         actions: [
-            IconButton(
-              icon: const Icon(Icons.search),
-              onPressed: () {},
-            ),
+          IconButton(
+            icon: const Icon(Icons.search, color: Colors.white, size: 28),
+            onPressed: () {
+              context.read<MainViewModel>().setIndex(1); // Navigates to Search Tab
+            },
+          ),
+          const SizedBox(width: 8),
+          const CircleAvatar(
+            radius: 14,
+            backgroundImage: NetworkImage('https://ui-avatars.com/api/?name=User&background=random'),
+            backgroundColor: Colors.redAccent,
+          ),
+          const SizedBox(width: 16),
         ],
       ),
       body: Consumer<MovieViewModel>(
@@ -39,7 +81,9 @@ class _HomeScreenState extends State<HomeScreen> {
           }
 
           if (viewModel.errorMessage != null) {
-            return Center(child: Text('Error: ${viewModel.errorMessage}'));
+            return Center(
+              child: Text('Error: ${viewModel.errorMessage}', style: const TextStyle(color: Colors.white)),
+            );
           }
 
           return SingleChildScrollView(
@@ -64,9 +108,9 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildFeaturedBanner(movie) {
+  Widget _buildFeaturedBanner(Results movie) {
     return Container(
-      height: 400,
+      height: 500,
       width: double.infinity,
       decoration: BoxDecoration(
         image: DecorationImage(
@@ -83,79 +127,111 @@ class _HomeScreenState extends State<HomeScreen> {
           gradient: LinearGradient(
             colors: [
               const Color(0xFF141414).withOpacity(1.0),
-              const Color(0xFF141414).withOpacity(0.0),
-              const Color(0xFF141414).withOpacity(1.0),
+              const Color(0xFF141414).withOpacity(0.2),
+              const Color(0xFF141414).withOpacity(0.8),
             ],
             begin: Alignment.bottomCenter,
             end: Alignment.topCenter,
-            stops: const [0.0, 0.5, 1.0],
+            stops: const [0.0, 0.6, 1.0],
           ),
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            Text(
-              movie.title ?? 'No Title',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
+        child: SafeArea(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Text(
+                  movie.title ?? 'No Title',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 36,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Movie • ${(movie.voteAverage ?? 0.0).toStringAsFixed(1)} ★',
-                  style: const TextStyle(color: Colors.white70, fontSize: 14),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Column(
-                  children: const [
-                    Icon(Icons.add, color: Colors.white),
-                    SizedBox(height: 4),
-                    Text('My List', style: TextStyle(color: Colors.white, fontSize: 12)),
-                  ],
-                ),
-                ElevatedButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(Icons.play_arrow, color: Colors.black),
-                  label: const Text(
-                    'Play',
-                    style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    '98% Match',
+                    style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 13),
                   ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4),
+                  const SizedBox(width: 12),
+                  Text(
+                    movie.releaseDate?.split('-').first ?? '',
+                    style: const TextStyle(color: Colors.white70, fontSize: 13),
+                  ),
+                  const SizedBox(width: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade800,
+                      borderRadius: BorderRadius.circular(2),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                    child: const Text('HD', style: TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.bold)),
                   ),
-                ),
-                Column(
-                  children: const [
-                    Icon(Icons.info_outline, color: Colors.white),
-                    SizedBox(height: 4),
-                    Text('Info', style: TextStyle(color: Colors.white, fontSize: 12)),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 32),
-          ],
+                ],
+              ),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Consumer<FavoriteViewModel>(
+                    builder: (context, favVM, child) {
+                      final isFav = favVM.isFavorite(movie);
+                      return GestureDetector(
+                        onTap: () => favVM.toggleFavorite(movie),
+                        child: Column(
+                          children: [
+                            Icon(isFav ? Icons.check : Icons.add, color: Colors.white),
+                            const SizedBox(height: 4),
+                            const Text('My List', style: TextStyle(color: Colors.white, fontSize: 12)),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: () => _navigateToVideo(context, movie),
+                    icon: const Icon(Icons.play_arrow, color: Colors.black, size: 24),
+                    label: const Text(
+                      'Play',
+                      style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => _navigateToDetail(context, movie),
+                    child: Column(
+                      children: const [
+                        Icon(Icons.info_outline, color: Colors.white),
+                        const SizedBox(height: 4),
+                        const Text('Info', style: TextStyle(color: Colors.white, fontSize: 12)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 32),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildHorizontalList(String title, List movies) {
+  Widget _buildHorizontalList(String title, List<Results> movies) {
     if (movies.isEmpty) return const SizedBox();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -173,7 +249,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         const SizedBox(height: 12),
         SizedBox(
-          height: 240,
+          height: 240, // Match the height in the original + spacing
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             physics: const BouncingScrollPhysics(),
