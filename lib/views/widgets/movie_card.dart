@@ -10,6 +10,7 @@ class MovieCard extends StatelessWidget {
   final double width;
   final double height;
   final bool showRating;
+  final EdgeInsetsGeometry? margin;
 
   const MovieCard({
     super.key,
@@ -17,6 +18,7 @@ class MovieCard extends StatelessWidget {
     this.width = 130,
     this.height = 190,
     this.showRating = true,
+    this.margin = const EdgeInsets.only(right: 16),
   });
 
   @override
@@ -32,7 +34,7 @@ class MovieCard extends StatelessWidget {
       },
       child: Container(
         width: width,
-        margin: const EdgeInsets.only(right: 16),
+        margin: margin,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
