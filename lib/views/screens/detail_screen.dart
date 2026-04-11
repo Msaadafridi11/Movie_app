@@ -4,6 +4,10 @@ import 'package:movie_app/core/constants/api_constants.dart';
 import 'package:movie_app/data/models/movie_model.dart';
 import 'package:movie_app/viewmodel/video_viewmodel.dart';
 import 'package:movie_app/views/screens/video_screen.dart';
+import 'dart:typed_data';
+import 'package:dio/dio.dart';
+import 'package:image_gallery_saver/image_gallery_saver.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class DetailScreen extends StatelessWidget {
   final Results movie;
@@ -13,6 +17,60 @@ class DetailScreen extends StatelessWidget {
   void _navigateToVideo(BuildContext context) {
     context.read<VideoViewModel>().playMovie(movie);
     Navigator.push(context, MaterialPageRoute(builder: (_) => const VideoScreen()));
+  }
+
+  Future<void> _downloadPoster(BuildContext context) async {
+    final imageUrl = movie.posterPath != null 
+        ? 'https://image.tmdb.org/t/p/w500${movie.posterPath}' 
+        : (movie.backdropPath != null 
+            ? 'https://image.tmdb.org/t/p/w500${movie.backdropPath}' 
+            : null);
+            
+    if (imageUrl == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No image available to download')),
+      );
+      return;
+    }
+
+    try {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Downloading...')),
+      );
+
+      var status = await Permission.storage.request();
+      if (!status.isGranted && !await Permission.photos.request().isGranted) {
+        // Continue anyway in case of Android 10+ where writes don't need explicit storage permission if using MediaStore
+      }
+
+      var response = await Dio().get(
+        imageUrl,
+        options: Options(responseType: ResponseType.bytes),
+      );
+      final result = await ImageGallerySaver.saveImage(
+        Uint8List.fromList(response.data),
+        quality: 100,
+        name: '${movie.title?.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_')}_poster',
+      );
+
+      if (context.mounted) {
+        if (result['isSuccess'] == true) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Downloaded to mobile gallery successfully!')),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to download image')),
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    }
   }
 
   @override
@@ -109,6 +167,25 @@ class DetailScreen extends StatelessWidget {
                         ),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () => _downloadPoster(context),
+                      icon: const Icon(Icons.download, color: Colors.white),
+                      label: const Text(
+                        'Download Poster to Gallery',
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.white24),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 24),
                   Text(
