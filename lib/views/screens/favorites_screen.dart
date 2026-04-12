@@ -64,10 +64,10 @@ class FavoritesScreen extends StatelessWidget {
             padding: const EdgeInsets.all(28),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.white.withOpacity(0.05),
+              color: Colors.white.withAlpha(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.redAccent.withOpacity(0.1),
+                  color: Colors.redAccent.withAlpha(25),
                   blurRadius: 20,
                   spreadRadius: 5,
                 ),

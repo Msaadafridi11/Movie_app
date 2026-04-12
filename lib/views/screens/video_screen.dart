@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:movie_app/viewmodel/video_viewmodel.dart';
-import 'package:movie_app/core/constants/api_constants.dart';
 import 'package:movie_app/data/models/movie_model.dart';
 import 'package:movie_app/views/widgets/related_video_tile.dart';
+import 'package:movie_app/core/utils/download_helper.dart';
 
 class VideoScreen extends StatefulWidget {
   const VideoScreen({super.key});
@@ -129,6 +129,25 @@ class _VideoScreenState extends State<VideoScreen> {
                               style: const TextStyle(color: Colors.white60, fontSize: 13, height: 1.4),
                               maxLines: 3,
                               overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 16),
+                            SizedBox(
+                              width: double.infinity,
+                              child: OutlinedButton.icon(
+                                onPressed: () => DownloadHelper.downloadVideo(context, movie),
+                                icon: const Icon(Icons.file_download, color: Colors.white),
+                                label: const Text(
+                                  'Download Video to Gallery',
+                                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                ),
+                                style: OutlinedButton.styleFrom(
+                                  side: const BorderSide(color: Colors.white24),
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                              ),
                             ),
                           ],
                           const SizedBox(height: 32),

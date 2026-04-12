@@ -9,6 +9,7 @@ import 'package:movie_app/core/constants/api_constants.dart';
 import 'package:movie_app/views/screens/detail_screen.dart';
 import 'package:movie_app/views/screens/video_screen.dart';
 import 'package:movie_app/data/models/movie_model.dart';
+import 'package:movie_app/core/utils/download_helper.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -126,9 +127,9 @@ class _HomeScreenState extends State<HomeScreen> {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              const Color(0xFF141414).withOpacity(1.0),
-              const Color(0xFF141414).withOpacity(0.2),
-              const Color(0xFF141414).withOpacity(0.8),
+              const Color(0xFF141414).withAlpha(255),
+              const Color(0xFF141414).withAlpha(51),
+              const Color(0xFF141414).withAlpha(204),
             ],
             begin: Alignment.bottomCenter,
             end: Alignment.topCenter,
@@ -216,8 +217,18 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Column(
                       children: const [
                         Icon(Icons.info_outline, color: Colors.white),
-                        const SizedBox(height: 4),
-                        const Text('Info', style: TextStyle(color: Colors.white, fontSize: 12)),
+                        SizedBox(height: 4),
+                        Text('Info', style: TextStyle(color: Colors.white, fontSize: 12)),
+                      ],
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => DownloadHelper.downloadVideo(context, movie),
+                    child: Column(
+                      children: const [
+                        Icon(Icons.download, color: Colors.white),
+                        SizedBox(height: 4),
+                        Text('Download', style: TextStyle(color: Colors.white, fontSize: 12)),
                       ],
                     ),
                   ),

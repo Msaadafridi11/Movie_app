@@ -8,6 +8,10 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:youtube_explode_dart/youtube_explode_dart.dart' as yt;
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
+import 'package:movie_app/data/repositories/movie_repository.dart';
 
 class DetailScreen extends StatelessWidget {
   final Results movie;
@@ -70,6 +74,59 @@ class DetailScreen extends StatelessWidget {
           SnackBar(content: Text('Error: $e')),
         );
       }
+    }
+  }
+
+  Future<void> _downloadVideo(BuildContext context) async {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    
+    if (movie.id == null) {
+      scaffoldMessenger.showSnackBar(const SnackBar(content: Text('No video available')));
+      return;
+    }
+
+    scaffoldMessenger.showSnackBar(const SnackBar(content: Text('Fetching video details...')));
+
+    try {
+      final repository = context.read<MovieRepository>();
+      final trailerKey = await repository.fetchMovieTrailer(movie.id!);
+
+      if (trailerKey == null || trailerKey.isEmpty) {
+        scaffoldMessenger.showSnackBar(const SnackBar(content: Text('No video found for this movie')));
+        return;
+      }
+      
+      var status = await Permission.storage.request();
+      if (!status.isGranted && !await Permission.photos.request().isGranted) {}
+
+      scaffoldMessenger.showSnackBar(const SnackBar(content: Text('Downloading video... (this might take a while)')));
+      
+      final ytExplode = yt.YoutubeExplode();
+      final manifest = await ytExplode.videos.streamsClient.getManifest(trailerKey);
+      final streamInfo = manifest.muxed.withHighestBitrate();
+      
+      final dir = await getTemporaryDirectory();
+      final sanitizedTitle = movie.title?.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_') ?? 'movie_video';
+      final filePath = '${dir.path}/$sanitizedTitle.mp4';
+      final file = File(filePath);
+
+      var stream = ytExplode.videos.streamsClient.get(streamInfo);
+      var fileStream = file.openWrite();
+      await stream.pipe(fileStream);
+      await fileStream.flush();
+      await fileStream.close();
+      ytExplode.close();
+
+      final result = await ImageGallerySaver.saveFile(filePath, name: sanitizedTitle);
+
+      if (result['isSuccess'] == true) {
+        scaffoldMessenger.showSnackBar(const SnackBar(content: Text('Video saved to mobile gallery successfully!')));
+      } else {
+        scaffoldMessenger.showSnackBar(const SnackBar(content: Text('Failed to save video to gallery')));
+      }
+
+    } catch (e) {
+      scaffoldMessenger.showSnackBar(SnackBar(content: Text('Error: $e')));
     }
   }
 
@@ -173,9 +230,28 @@ class DetailScreen extends StatelessWidget {
                     width: double.infinity,
                     child: OutlinedButton.icon(
                       onPressed: () => _downloadPoster(context),
-                      icon: const Icon(Icons.download, color: Colors.white),
+                      icon: const Icon(Icons.image_outlined, color: Colors.white),
                       label: const Text(
                         'Download Poster to Gallery',
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.white24),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () => _downloadVideo(context),
+                      icon: const Icon(Icons.file_download, color: Colors.white),
+                      label: const Text(
+                        'Download Video to Gallery',
                         style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                       ),
                       style: OutlinedButton.styleFrom(
@@ -234,8 +310,8 @@ class DetailScreen extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              const Color(0xFF141414).withOpacity(1.0),
-              const Color(0xFF141414).withOpacity(0.0),
+              const Color(0xFF141414).withAlpha(255),
+              const Color(0xFF141414).withAlpha(0),
             ],
             begin: Alignment.bottomCenter,
             end: Alignment.topCenter,

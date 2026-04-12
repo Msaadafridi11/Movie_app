@@ -3,6 +3,7 @@ import 'package:movie_app/core/constants/api_constants.dart';
 import 'package:movie_app/data/models/movie_model.dart';
 import 'package:movie_app/viewmodel/favorite_viewmodel.dart';
 import 'package:provider/provider.dart';
+import 'package:movie_app/core/utils/download_helper.dart';
 
 class RelatedVideoTile extends StatelessWidget {
   final Results movie;
@@ -96,17 +97,25 @@ class RelatedVideoTile extends StatelessWidget {
                 ],
               ),
             ),
-            Consumer<FavoriteViewModel>(
-              builder: (context, favVM, child) {
-                final isFav = favVM.isFavorite(movie);
-                return IconButton(
-                  icon: Icon(
-                    isFav ? Icons.favorite : Icons.favorite_border,
-                    color: isFav ? Colors.redAccent : Colors.grey,
-                  ),
-                  onPressed: () => favVM.toggleFavorite(movie),
-                );
-              },
+            Column(
+              children: [
+                Consumer<FavoriteViewModel>(
+                  builder: (context, favVM, child) {
+                    final isFav = favVM.isFavorite(movie);
+                    return IconButton(
+                      icon: Icon(
+                        isFav ? Icons.favorite : Icons.favorite_border,
+                        color: isFav ? Colors.redAccent : Colors.grey,
+                      ),
+                      onPressed: () => favVM.toggleFavorite(movie),
+                    );
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.download, color: Colors.white70),
+                  onPressed: () => DownloadHelper.downloadVideo(context, movie),
+                ),
+              ],
             ),
           ],
         ),
