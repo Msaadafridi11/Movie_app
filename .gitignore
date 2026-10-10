@@ -32,6 +32,7 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
+build/
 
 # Symbolication related
 app.*.symbols
@@ -43,3 +44,16 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Secrets, Environment Files, and Keystores
+.env
+.env.*
+*.env
+key.properties
+*.jks
+*.keystore
+analyze_output.txt
+
+# Sensitive API Keys
+lib/core/constants/api_keys.dart
+*api_keys.dart
