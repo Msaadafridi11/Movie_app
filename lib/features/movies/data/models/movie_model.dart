@@ -1,7 +1,7 @@
 import 'package:movie_app/core/constants/app_constants.dart';
 import 'package:movie_app/features/movies/domain/entities/movie.dart';
 
-/// Data model representing Movie, extending domain entity with serialization logic
+/// Data model representing Movie or TV Show, extending domain entity with serialization logic
 class MovieModel extends Movie {
   const MovieModel({
     required super.id,
@@ -17,9 +17,14 @@ class MovieModel extends Movie {
     super.runtime,
     super.popularity = 0.0,
     super.tagline,
+    super.isTvShow = false,
+    super.imdbId,
   });
 
-  factory MovieModel.fromJson(Map<String, dynamic> json) {
+  factory MovieModel.fromJson(Map<String, dynamic> json, {bool isTv = false}) {
+    // Detect TV show from json or explicit flag
+    final isTvShow = isTv || json['first_air_date'] != null || json['name'] != null;
+
     // Parse genre IDs
     final rawGenreIds = json['genre_ids'];
     List<int> parsedGenreIds = [];
@@ -42,20 +47,39 @@ class MovieModel extends Movie {
           .toList();
     }
 
+    // Determine title
+    final title = json['title'] as String? ??
+        json['name'] as String? ??
+        json['original_title'] as String? ??
+        json['original_name'] as String? ??
+        'Untitled';
+
+    // Determine release date
+    final releaseDate = json['release_date'] as String? ??
+        json['first_air_date'] as String?;
+
+    // Determine runtime (movies use 'runtime', TV uses 'episode_run_time')
+    int? runtime = (json['runtime'] as num?)?.toInt();
+    if (runtime == null && json['episode_run_time'] is List && (json['episode_run_time'] as List).isNotEmpty) {
+      runtime = ((json['episode_run_time'] as List).first as num?)?.toInt();
+    }
+
     return MovieModel(
       id: (json['id'] as num?)?.toInt() ?? 0,
-      title: json['title'] as String? ?? json['original_title'] as String? ?? 'Untitled',
+      title: title,
       overview: json['overview'] as String? ?? 'No overview available.',
       posterPath: json['poster_path'] as String?,
       backdropPath: json['backdrop_path'] as String?,
       voteAverage: (json['vote_average'] as num?)?.toDouble() ?? 0.0,
       voteCount: (json['vote_count'] as num?)?.toInt() ?? 0,
-      releaseDate: json['release_date'] as String?,
+      releaseDate: releaseDate,
       genreIds: parsedGenreIds,
       genres: parsedGenres,
-      runtime: (json['runtime'] as num?)?.toInt(),
+      runtime: runtime,
       popularity: (json['popularity'] as num?)?.toDouble() ?? 0.0,
       tagline: json['tagline'] as String?,
+      isTvShow: isTvShow,
+      imdbId: json['imdb_id'] as String?,
     );
   }
 
@@ -70,28 +94,32 @@ class MovieModel extends Movie {
       'vote_count': voteCount,
       'release_date': releaseDate,
       'genre_ids': genreIds,
-      'genres': genres.map((name) => {'name': name}).toList(),
+      'genres': genres,
       'runtime': runtime,
       'popularity': popularity,
       'tagline': tagline,
+      'is_tv_show': isTvShow,
+      'imdb_id': imdbId,
     };
   }
 
-  factory MovieModel.fromEntity(Movie entity) {
+  factory MovieModel.fromEntity(Movie movie) {
     return MovieModel(
-      id: entity.id,
-      title: entity.title,
-      overview: entity.overview,
-      posterPath: entity.posterPath,
-      backdropPath: entity.backdropPath,
-      voteAverage: entity.voteAverage,
-      voteCount: entity.voteCount,
-      releaseDate: entity.releaseDate,
-      genreIds: entity.genreIds,
-      genres: entity.genres,
-      runtime: entity.runtime,
-      popularity: entity.popularity,
-      tagline: entity.tagline,
+      id: movie.id,
+      title: movie.title,
+      overview: movie.overview,
+      posterPath: movie.posterPath,
+      backdropPath: movie.backdropPath,
+      voteAverage: movie.voteAverage,
+      voteCount: movie.voteCount,
+      releaseDate: movie.releaseDate,
+      genreIds: movie.genreIds,
+      genres: movie.genres,
+      runtime: movie.runtime,
+      popularity: movie.popularity,
+      tagline: movie.tagline,
+      isTvShow: movie.isTvShow,
+      imdbId: movie.imdbId,
     );
   }
 }

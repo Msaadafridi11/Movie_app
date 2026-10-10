@@ -7,10 +7,16 @@ import 'package:movie_app/features/movies/data/datasources/movie_local_data_sour
 import 'package:movie_app/features/movies/data/datasources/movie_remote_data_source.dart';
 import 'package:movie_app/features/movies/data/repositories_impl/movie_repository_impl.dart';
 import 'package:movie_app/features/movies/domain/repositories/movie_repository.dart';
+import 'package:movie_app/features/movies/domain/usecases/get_discover_movies.dart';
 import 'package:movie_app/features/movies/domain/usecases/get_movie_credits.dart';
 import 'package:movie_app/features/movies/domain/usecases/get_movie_details.dart';
+import 'package:movie_app/features/movies/domain/usecases/get_movie_images.dart';
+import 'package:movie_app/features/movies/domain/usecases/get_movie_recommendations.dart';
 import 'package:movie_app/features/movies/domain/usecases/get_movie_trailers.dart';
+import 'package:movie_app/features/movies/domain/usecases/get_movie_watch_providers.dart';
+import 'package:movie_app/features/movies/domain/usecases/get_omdb_ratings.dart';
 import 'package:movie_app/features/movies/domain/usecases/get_popular_movies.dart';
+import 'package:movie_app/features/movies/domain/usecases/get_popular_tv_shows.dart';
 import 'package:movie_app/features/movies/domain/usecases/get_similar_movies.dart';
 import 'package:movie_app/features/movies/domain/usecases/get_top_rated_movies.dart';
 import 'package:movie_app/features/movies/domain/usecases/get_trending_movies.dart';
@@ -60,11 +66,17 @@ Future<void> initInjection() async {
   getIt.registerLazySingleton(() => GetPopularMovies(getIt<MovieRepository>()));
   getIt.registerLazySingleton(() => GetTopRatedMovies(getIt<MovieRepository>()));
   getIt.registerLazySingleton(() => GetUpcomingMovies(getIt<MovieRepository>()));
+  getIt.registerLazySingleton(() => GetPopularTvShows(getIt<MovieRepository>()));
+  getIt.registerLazySingleton(() => GetDiscoverMovies(getIt<MovieRepository>()));
   getIt.registerLazySingleton(() => SearchMovies(getIt<MovieRepository>()));
   getIt.registerLazySingleton(() => GetMovieDetails(getIt<MovieRepository>()));
   getIt.registerLazySingleton(() => GetMovieCredits(getIt<MovieRepository>()));
   getIt.registerLazySingleton(() => GetSimilarMovies(getIt<MovieRepository>()));
+  getIt.registerLazySingleton(() => GetMovieRecommendations(getIt<MovieRepository>()));
   getIt.registerLazySingleton(() => GetMovieTrailers(getIt<MovieRepository>()));
+  getIt.registerLazySingleton(() => GetMovieWatchProviders(getIt<MovieRepository>()));
+  getIt.registerLazySingleton(() => GetMovieImages(getIt<MovieRepository>()));
+  getIt.registerLazySingleton(() => GetOmdbRatings(getIt<MovieRepository>()));
   getIt.registerLazySingleton(() => GetFavorites(getIt<MovieRepository>()));
   getIt.registerLazySingleton(() => AddFavorite(getIt<MovieRepository>()));
   getIt.registerLazySingleton(() => RemoveFavorite(getIt<MovieRepository>()));
@@ -77,6 +89,9 @@ Future<void> initInjection() async {
       getPopularMovies: getIt<GetPopularMovies>(),
       getTopRatedMovies: getIt<GetTopRatedMovies>(),
       getUpcomingMovies: getIt<GetUpcomingMovies>(),
+      getPopularTvShows: getIt<GetPopularTvShows>(),
+      getDiscoverMovies: getIt<GetDiscoverMovies>(),
+      getMovieTrailers: getIt<GetMovieTrailers>(),
     ),
   );
 
@@ -85,7 +100,11 @@ Future<void> initInjection() async {
       getMovieDetails: getIt<GetMovieDetails>(),
       getMovieCredits: getIt<GetMovieCredits>(),
       getSimilarMovies: getIt<GetSimilarMovies>(),
+      getMovieRecommendations: getIt<GetMovieRecommendations>(),
       getMovieTrailers: getIt<GetMovieTrailers>(),
+      getMovieWatchProviders: getIt<GetMovieWatchProviders>(),
+      getMovieImages: getIt<GetMovieImages>(),
+      getOmdbRatings: getIt<GetOmdbRatings>(),
       isFavoriteUseCase: getIt<IsFavorite>(),
       addFavoriteUseCase: getIt<AddFavorite>(),
       removeFavoriteUseCase: getIt<RemoveFavorite>(),

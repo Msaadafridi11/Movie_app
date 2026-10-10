@@ -5,9 +5,10 @@ import 'package:movie_app/core/constants/api_constants.dart';
 import 'package:movie_app/core/constants/app_constants.dart';
 import 'package:movie_app/core/theme/app_colors.dart';
 import 'package:movie_app/core/widgets/developer_footer.dart';
+import 'package:movie_app/features/movies/presentation/screens/privacy_policy_screen.dart';
 import 'package:movie_app/features/movies/presentation/viewmodels/theme_viewmodel.dart';
 
-/// Settings & About Screen with Theme switch, API info, and Developer attribution
+/// Settings & About Screen with Theme switch, Required TMDB Attribution, and Legal notices
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
@@ -20,7 +21,7 @@ class SettingsScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(
           'Settings & About',
-          style: GoogleFonts.poppins(
+          style: GoogleFonts.outfit(
             fontSize: 22,
             fontWeight: FontWeight.bold,
           ),
@@ -42,14 +43,14 @@ class SettingsScreen extends StatelessWidget {
                 ),
                 title: Text(
                   'Dark Theme',
-                  style: GoogleFonts.poppins(
+                  style: GoogleFonts.outfit(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 subtitle: Text(
-                  themeVm.isDarkMode ? 'Pitch-dark Netflix aesthetic enabled' : 'Clean light theme enabled',
-                  style: GoogleFonts.poppins(
+                  themeVm.isDarkMode ? 'Cinematic dark theme enabled' : 'Clean light theme enabled',
+                  style: GoogleFonts.outfit(
                     fontSize: 12,
                     color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
                   ),
@@ -62,56 +63,129 @@ class SettingsScreen extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            // Section 2: Data Source & API
-            _buildSectionHeader('Data Source', isDark),
+            // Section 2: Required TMDB Attribution
+            _buildSectionHeader('API & Attribution', isDark),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Container(
+                            width: 50,
+                            height: 38,
+                            color: const Color(0xFF0D253F), // TMDB Navy Blue
+                            child: Center(
+                              child: Text(
+                                'TMDB',
+                                style: GoogleFonts.outfit(
+                                  color: const Color(0xFF01B4E4), // TMDB Cyan
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 14,
+                                  letterSpacing: 1.0,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'The Movie Database',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark ? Colors.white : Colors.black87,
+                                ),
+                              ),
+                              Text(
+                                'API v3 Services Connected',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 12,
+                                  color: Colors.greenAccent,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF141720) : const Color(0xFFF1F3F8),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: isDark ? Colors.white10 : Colors.black12,
+                        ),
+                      ),
+                      child: Text(
+                        ApiConstants.tmdbAttributionText,
+                        style: GoogleFonts.outfit(
+                          fontSize: 12,
+                          height: 1.4,
+                          fontWeight: FontWeight.w500,
+                          color: isDark ? Colors.white70 : Colors.black87,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Section 3: Legal & Play Store Compliance
+            _buildSectionHeader('Legal & Compliance', isDark),
             Card(
               child: Column(
                 children: [
                   ListTile(
-                    leading: const Icon(Icons.api_rounded, color: AppColors.primary),
+                    leading: const Icon(Icons.shield_rounded, color: AppColors.primary),
                     title: Text(
-                      'TMDB API Service',
-                      style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600),
+                      'Legal Streaming Notice',
+                      style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w600),
                     ),
                     subtitle: Text(
-                      'Connected to api.themoviedb.org v3',
-                      style: GoogleFonts.poppins(
+                      'CineFlix does NOT stream or host full movies. We only provide promotional trailers via YouTube and links to licensed providers.',
+                      style: GoogleFonts.outfit(
                         fontSize: 12,
                         color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
-                      ),
-                    ),
-                    trailing: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.success.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        'Active',
-                        style: GoogleFonts.poppins(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.success,
-                        ),
                       ),
                     ),
                   ),
                   const Divider(height: 1),
                   ListTile(
-                    leading: const Icon(Icons.key_rounded, color: AppColors.primary),
+                    leading: const Icon(Icons.privacy_tip_rounded, color: AppColors.primary),
                     title: Text(
-                      'API Key Status',
-                      style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600),
+                      'Privacy Policy',
+                      style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w600),
                     ),
                     subtitle: Text(
-                      ApiConstants.apiKey.isNotEmpty
-                          ? 'Key configured in core/constants/api_constants.dart'
-                          : 'No API key set',
-                      style: GoogleFonts.poppins(
+                      'Zero tracking, zero PII collection',
+                      style: GoogleFonts.outfit(
                         fontSize: 12,
                         color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
                       ),
                     ),
+                    trailing: const Icon(Icons.chevron_right_rounded),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const PrivacyPolicyScreen(),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -119,7 +193,7 @@ class SettingsScreen extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            // Section 3: About Application
+            // Section 4: About Application
             _buildSectionHeader('About Application', isDark),
             Card(
               child: Padding(
@@ -132,7 +206,9 @@ class SettingsScreen extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            gradient: AppColors.brandGradient,
+                            gradient: const LinearGradient(
+                              colors: [AppColors.primary, Color(0xFFFF5252)],
+                            ),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Icon(Icons.movie_creation_rounded, color: Colors.white, size: 24),
@@ -143,7 +219,7 @@ class SettingsScreen extends StatelessWidget {
                           children: [
                             Text(
                               AppConstants.appName,
-                              style: GoogleFonts.poppins(
+                              style: GoogleFonts.outfit(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
                                 color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
@@ -151,7 +227,7 @@ class SettingsScreen extends StatelessWidget {
                             ),
                             Text(
                               'Version ${AppConstants.appVersion}',
-                              style: GoogleFonts.poppins(
+                              style: GoogleFonts.outfit(
                                 fontSize: 12,
                                 color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
                               ),
@@ -162,8 +238,8 @@ class SettingsScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 14),
                     Text(
-                      '${AppConstants.appName} is a production-grade movie streaming discovery app built with Flutter, Clean Architecture, and MVVM design pattern. Designed to provide a sleek, fluid 60fps Netflix & Disney+ streaming experience.',
-                      style: GoogleFonts.poppins(
+                      '${AppConstants.appName} is a production-grade movie & TV discovery application built with Flutter, Clean Architecture, and MVVM + Provider. Delivers smooth YouTube trailer playback and comprehensive streaming availability.',
+                      style: GoogleFonts.outfit(
                         fontSize: 12,
                         height: 1.5,
                         color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
@@ -176,6 +252,7 @@ class SettingsScreen extends StatelessWidget {
                         _buildBadge('Clean Architecture', isDark),
                         _buildBadge('MVVM', isDark),
                         _buildBadge('Provider', isDark),
+                        _buildBadge('YouTube iFrame', isDark),
                         _buildBadge('TMDB API', isDark),
                       ],
                     ),
@@ -186,15 +263,15 @@ class SettingsScreen extends StatelessWidget {
 
             const SizedBox(height: 28),
 
-            // Stylish Developer Credit Footer
+            // Developer Credit Footer
             Center(
               child: Column(
                 children: [
                   const DeveloperFooter(showHeart: true),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 8),
                   Text(
                     'Crafted with passion for cinema and code',
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.outfit(
                       fontSize: 11,
                       color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
                     ),
@@ -215,7 +292,7 @@ class SettingsScreen extends StatelessWidget {
       padding: const EdgeInsets.only(left: 4.0, bottom: 8.0),
       child: Text(
         title.toUpperCase(),
-        style: GoogleFonts.poppins(
+        style: GoogleFonts.outfit(
           fontSize: 11,
           fontWeight: FontWeight.bold,
           letterSpacing: 1.2,
@@ -229,7 +306,7 @@ class SettingsScreen extends StatelessWidget {
     return Chip(
       label: Text(
         text,
-        style: GoogleFonts.poppins(
+        style: GoogleFonts.outfit(
           fontSize: 10,
           fontWeight: FontWeight.w600,
           color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,

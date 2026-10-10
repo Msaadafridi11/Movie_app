@@ -7,7 +7,9 @@ import 'package:movie_app/features/movies/data/datasources/movie_remote_data_sou
 import 'package:movie_app/features/movies/data/models/movie_model.dart';
 import 'package:movie_app/features/movies/domain/entities/cast.dart';
 import 'package:movie_app/features/movies/domain/entities/movie.dart';
+import 'package:movie_app/features/movies/domain/entities/omdb_rating.dart';
 import 'package:movie_app/features/movies/domain/entities/video.dart';
+import 'package:movie_app/features/movies/domain/entities/watch_provider.dart';
 import 'package:movie_app/features/movies/domain/repositories/movie_repository.dart';
 
 class MovieRepositoryImpl implements MovieRepository {
@@ -61,8 +63,6 @@ class MovieRepositoryImpl implements MovieRepository {
       return Right(remoteMovies);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message, e.statusCode));
-    } on ConnectionException catch (e) {
-      return Left(ConnectionFailure(e.message));
     } catch (e) {
       return Left(ServerFailure(e.toString()));
     }
@@ -78,8 +78,6 @@ class MovieRepositoryImpl implements MovieRepository {
       return Right(remoteMovies);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message, e.statusCode));
-    } on ConnectionException catch (e) {
-      return Left(ConnectionFailure(e.message));
     } catch (e) {
       return Left(ServerFailure(e.toString()));
     }
@@ -95,8 +93,36 @@ class MovieRepositoryImpl implements MovieRepository {
       return Right(remoteMovies);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message, e.statusCode));
-    } on ConnectionException catch (e) {
-      return Left(ConnectionFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<Movie>>> getPopularTvShows({int page = 1}) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(ConnectionFailure());
+    }
+    try {
+      final remoteTv = await remoteDataSource.getPopularTvShows(page: page);
+      return Right(remoteTv);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message, e.statusCode));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<Movie>>> getDiscoverMovies({int? genreId, int page = 1}) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(ConnectionFailure());
+    }
+    try {
+      final movies = await remoteDataSource.getDiscoverMovies(genreId: genreId, page: page);
+      return Right(movies);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message, e.statusCode));
     } catch (e) {
       return Left(ServerFailure(e.toString()));
     }
@@ -108,85 +134,149 @@ class MovieRepositoryImpl implements MovieRepository {
       return const Left(ConnectionFailure());
     }
     try {
-      final remoteMovies = await remoteDataSource.searchMovies(query, page: page);
-      return Right(remoteMovies);
+      final results = await remoteDataSource.searchMovies(query, page: page);
+      return Right(results);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message, e.statusCode));
-    } on ConnectionException catch (e) {
-      return Left(ConnectionFailure(e.message));
     } catch (e) {
       return Left(ServerFailure(e.toString()));
     }
   }
 
   @override
-  Future<Either<Failure, Movie>> getMovieDetails(int id) async {
+  Future<Either<Failure, List<Movie>>> searchMulti(String query, {int page = 1}) async {
     if (!await networkInfo.isConnected) {
       return const Left(ConnectionFailure());
     }
     try {
-      final details = await remoteDataSource.getMovieDetails(id);
-      return Right(details);
+      final results = await remoteDataSource.searchMulti(query, page: page);
+      return Right(results);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message, e.statusCode));
-    } on ConnectionException catch (e) {
-      return Left(ConnectionFailure(e.message));
     } catch (e) {
       return Left(ServerFailure(e.toString()));
     }
   }
 
   @override
-  Future<Either<Failure, List<Cast>>> getMovieCredits(int id) async {
+  Future<Either<Failure, Movie>> getMovieDetails(int id, {bool isTv = false}) async {
     if (!await networkInfo.isConnected) {
       return const Left(ConnectionFailure());
     }
     try {
-      final credits = await remoteDataSource.getMovieCredits(id);
+      final movie = await remoteDataSource.getMovieDetails(id, isTv: isTv);
+      return Right(movie);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message, e.statusCode));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<Cast>>> getMovieCredits(int id, {bool isTv = false}) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(ConnectionFailure());
+    }
+    try {
+      final credits = await remoteDataSource.getMovieCredits(id, isTv: isTv);
       return Right(credits);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message, e.statusCode));
-    } on ConnectionException catch (e) {
-      return Left(ConnectionFailure(e.message));
     } catch (e) {
       return Left(ServerFailure(e.toString()));
     }
   }
 
   @override
-  Future<Either<Failure, List<Movie>>> getSimilarMovies(int id) async {
+  Future<Either<Failure, List<Movie>>> getSimilarMovies(int id, {bool isTv = false}) async {
     if (!await networkInfo.isConnected) {
       return const Left(ConnectionFailure());
     }
     try {
-      final similar = await remoteDataSource.getSimilarMovies(id);
+      final similar = await remoteDataSource.getSimilarMovies(id, isTv: isTv);
       return Right(similar);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message, e.statusCode));
-    } on ConnectionException catch (e) {
-      return Left(ConnectionFailure(e.message));
     } catch (e) {
       return Left(ServerFailure(e.toString()));
     }
   }
 
   @override
-  Future<Either<Failure, List<Video>>> getMovieTrailers(int id) async {
+  Future<Either<Failure, List<Movie>>> getMovieRecommendations(int id, {bool isTv = false}) async {
     if (!await networkInfo.isConnected) {
       return const Left(ConnectionFailure());
     }
     try {
-      final trailers = await remoteDataSource.getMovieTrailers(id);
-      return Right(trailers);
+      final recs = await remoteDataSource.getMovieRecommendations(id, isTv: isTv);
+      return Right(recs);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message, e.statusCode));
-    } on ConnectionException catch (e) {
-      return Left(ConnectionFailure(e.message));
     } catch (e) {
       return Left(ServerFailure(e.toString()));
     }
   }
 
+  @override
+  Future<Either<Failure, List<Video>>> getMovieTrailers(int id, {bool isTv = false}) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(ConnectionFailure());
+    }
+    try {
+      final trailers = await remoteDataSource.getMovieTrailers(id, isTv: isTv);
+      return Right(trailers);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message, e.statusCode));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<WatchProvider>>> getMovieWatchProviders(int id, {bool isTv = false}) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(ConnectionFailure());
+    }
+    try {
+      final providers = await remoteDataSource.getMovieWatchProviders(id, isTv: isTv);
+      return Right(providers);
+    } catch (e) {
+      return Right([]); // Fail gracefully for providers
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<String>>> getMovieImages(int id, {bool isTv = false}) async {
+    if (!await networkInfo.isConnected) {
+      return const Left(ConnectionFailure());
+    }
+    try {
+      final images = await remoteDataSource.getMovieImages(id, isTv: isTv);
+      return Right(images);
+    } catch (e) {
+      return Right([]); // Fail gracefully for images
+    }
+  }
+
+  @override
+  Future<Either<Failure, OmdbRating?>> getOmdbRatings({String? imdbId, String? title, String? year}) async {
+    if (!await networkInfo.isConnected) {
+      return const Right(null);
+    }
+    try {
+      final ratings = await remoteDataSource.getOmdbRatings(
+        imdbId: imdbId,
+        title: title,
+        year: year,
+      );
+      return Right(ratings);
+    } catch (_) {
+      return const Right(null); // Fail silently
+    }
+  }
+
+  // Local Favorites
   @override
   Future<Either<Failure, List<Movie>>> getFavorites() async {
     try {
@@ -227,8 +317,8 @@ class MovieRepositoryImpl implements MovieRepository {
   @override
   Future<Either<Failure, bool>> isFavorite(int movieId) async {
     try {
-      final isFav = await localDataSource.isFavorite(movieId);
-      return Right(isFav);
+      final result = await localDataSource.isFavorite(movieId);
+      return Right(result);
     } on CacheException catch (e) {
       return Left(CacheFailure(e.message));
     } catch (e) {

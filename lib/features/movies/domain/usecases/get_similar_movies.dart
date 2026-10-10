@@ -8,7 +8,7 @@ class GetSimilarMovies {
 
   GetSimilarMovies(this.repository);
 
-  Future<Either<Failure, List<Movie>>> call(int id) async {
-    return await repository.getSimilarMovies(id);
+  Future<Either<Failure, List<Movie>>> call(int id, {bool isTv = false}) async {
+    return await repository.getSimilarMovies(id, isTv: isTv);
   }
 }

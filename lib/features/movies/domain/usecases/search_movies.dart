@@ -8,7 +8,14 @@ class SearchMovies {
 
   SearchMovies(this.repository);
 
-  Future<Either<Failure, List<Movie>>> call(String query, {int page = 1}) async {
+  Future<Either<Failure, List<Movie>>> call(
+    String query, {
+    int page = 1,
+    bool multi = true,
+  }) async {
+    if (multi) {
+      return await repository.searchMulti(query, page: page);
+    }
     return await repository.searchMovies(query, page: page);
   }
 }

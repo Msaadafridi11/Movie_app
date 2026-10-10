@@ -8,7 +8,7 @@ class GetMovieCredits {
 
   GetMovieCredits(this.repository);
 
-  Future<Either<Failure, List<Cast>>> call(int id) async {
-    return await repository.getMovieCredits(id);
+  Future<Either<Failure, List<Cast>>> call(int id, {bool isTv = false}) async {
+    return await repository.getMovieCredits(id, isTv: isTv);
   }
 }

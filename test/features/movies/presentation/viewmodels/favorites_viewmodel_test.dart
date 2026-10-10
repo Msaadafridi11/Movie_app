@@ -3,7 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:movie_app/core/errors/failures.dart';
 import 'package:movie_app/features/movies/domain/entities/cast.dart';
 import 'package:movie_app/features/movies/domain/entities/movie.dart';
+import 'package:movie_app/features/movies/domain/entities/omdb_rating.dart';
 import 'package:movie_app/features/movies/domain/entities/video.dart';
+import 'package:movie_app/features/movies/domain/entities/watch_provider.dart';
 import 'package:movie_app/features/movies/domain/repositories/movie_repository.dart';
 import 'package:movie_app/features/movies/domain/usecases/manage_favorites.dart';
 import 'package:movie_app/features/movies/presentation/viewmodels/favorites_viewmodel.dart';
@@ -44,15 +46,29 @@ class FakeFavoritesRepository implements MovieRepository {
   @override
   Future<Either<Failure, List<Movie>>> getUpcomingMovies({int page = 1}) async => const Right([]);
   @override
+  Future<Either<Failure, List<Movie>>> getPopularTvShows({int page = 1}) async => const Right([]);
+  @override
+  Future<Either<Failure, List<Movie>>> getDiscoverMovies({int? genreId, int page = 1}) async => const Right([]);
+  @override
   Future<Either<Failure, List<Movie>>> searchMovies(String query, {int page = 1}) async => const Right([]);
   @override
-  Future<Either<Failure, Movie>> getMovieDetails(int id) async => const Right(Movie(id: 1, title: '', overview: ''));
+  Future<Either<Failure, List<Movie>>> searchMulti(String query, {int page = 1}) async => const Right([]);
   @override
-  Future<Either<Failure, List<Cast>>> getMovieCredits(int id) async => const Right([]);
+  Future<Either<Failure, Movie>> getMovieDetails(int id, {bool isTv = false}) async => const Right(Movie(id: 1, title: '', overview: ''));
   @override
-  Future<Either<Failure, List<Movie>>> getSimilarMovies(int id) async => const Right([]);
+  Future<Either<Failure, List<Cast>>> getMovieCredits(int id, {bool isTv = false}) async => const Right([]);
   @override
-  Future<Either<Failure, List<Video>>> getMovieTrailers(int id) async => const Right([]);
+  Future<Either<Failure, List<Movie>>> getSimilarMovies(int id, {bool isTv = false}) async => const Right([]);
+  @override
+  Future<Either<Failure, List<Movie>>> getMovieRecommendations(int id, {bool isTv = false}) async => const Right([]);
+  @override
+  Future<Either<Failure, List<Video>>> getMovieTrailers(int id, {bool isTv = false}) async => const Right([]);
+  @override
+  Future<Either<Failure, List<WatchProvider>>> getMovieWatchProviders(int id, {bool isTv = false}) async => const Right([]);
+  @override
+  Future<Either<Failure, List<String>>> getMovieImages(int id, {bool isTv = false}) async => const Right([]);
+  @override
+  Future<Either<Failure, OmdbRating?>> getOmdbRatings({String? imdbId, String? title, String? year}) async => const Right(null);
 }
 
 void main() {

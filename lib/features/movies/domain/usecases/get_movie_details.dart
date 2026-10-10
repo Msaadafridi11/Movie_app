@@ -8,7 +8,7 @@ class GetMovieDetails {
 
   GetMovieDetails(this.repository);
 
-  Future<Either<Failure, Movie>> call(int id) async {
-    return await repository.getMovieDetails(id);
+  Future<Either<Failure, Movie>> call(int id, {bool isTv = false}) async {
+    return await repository.getMovieDetails(id, isTv: isTv);
   }
 }

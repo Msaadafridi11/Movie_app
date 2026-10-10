@@ -24,12 +24,16 @@ class DioClient {
     dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) {
-          // Auto inject TMDB api_key if missing from queryParameters
-          final currentQuery = Map<String, dynamic>.from(options.queryParameters);
-          if (!currentQuery.containsKey('api_key') || currentQuery['api_key'] == null) {
-            currentQuery['api_key'] = ApiConstants.apiKey;
+          // Auto inject TMDB api_key if requesting TMDB endpoints
+          final isTmdb = !options.path.startsWith('http') ||
+              options.path.startsWith(ApiConstants.baseUrl);
+          if (isTmdb) {
+            final currentQuery = Map<String, dynamic>.from(options.queryParameters);
+            if (!currentQuery.containsKey('api_key') || currentQuery['api_key'] == null) {
+              currentQuery['api_key'] = ApiConstants.apiKey;
+            }
+            options.queryParameters = currentQuery;
           }
-          options.queryParameters = currentQuery;
           return handler.next(options);
         },
         onError: (DioException e, handler) {

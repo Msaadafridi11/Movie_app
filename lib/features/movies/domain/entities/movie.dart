@@ -1,4 +1,4 @@
-/// Pure Dart Movie entity representing a movie in the domain layer
+/// Pure Dart Movie entity representing a movie or TV show in the domain layer
 class Movie {
   final int id;
   final String title;
@@ -13,6 +13,8 @@ class Movie {
   final int? runtime;
   final double popularity;
   final String? tagline;
+  final bool isTvShow;
+  final String? imdbId;
 
   const Movie({
     required this.id,
@@ -28,6 +30,8 @@ class Movie {
     this.runtime,
     this.popularity = 0.0,
     this.tagline,
+    this.isTvShow = false,
+    this.imdbId,
   });
 
   /// Formatted release year (e.g., '2024')

@@ -8,7 +8,7 @@ class GetMovieTrailers {
 
   GetMovieTrailers(this.repository);
 
-  Future<Either<Failure, List<Video>>> call(int id) async {
-    return await repository.getMovieTrailers(id);
+  Future<Either<Failure, List<Video>>> call(int id, {bool isTv = false}) async {
+    return await repository.getMovieTrailers(id, isTv: isTv);
   }
 }

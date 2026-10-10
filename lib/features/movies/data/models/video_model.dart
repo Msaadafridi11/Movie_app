@@ -8,6 +8,9 @@ class VideoModel extends Video {
     required super.name,
     required super.site,
     required super.type,
+    super.size = 1080,
+    super.official = true,
+    super.publishedAt,
   });
 
   factory VideoModel.fromJson(Map<String, dynamic> json) {
@@ -17,6 +20,9 @@ class VideoModel extends Video {
       name: json['name'] as String? ?? '',
       site: json['site'] as String? ?? '',
       type: json['type'] as String? ?? '',
+      size: (json['size'] as num?)?.toInt() ?? 1080,
+      official: json['official'] as bool? ?? true,
+      publishedAt: json['published_at'] as String?,
     );
   }
 
@@ -27,6 +33,9 @@ class VideoModel extends Video {
       'name': name,
       'site': site,
       'type': type,
+      'size': size,
+      'official': official,
+      'published_at': publishedAt,
     };
   }
 }

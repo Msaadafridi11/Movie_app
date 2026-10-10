@@ -1,7 +1,7 @@
 /// Global Application Constants
 class AppConstants {
-  static const String appName = 'CineStream';
-  static const String appTagline = 'Your Gateway to Cinematic Universe';
+  static const String appName = 'CineFlix';
+  static const String appTagline = 'Discover Movies, Trailers & TV Shows';
   static const String appVersion = '1.0.0';
   
   // Developer Credit
@@ -10,9 +10,9 @@ class AppConstants {
   static const String developerFooter = 'Developed by Saad Afridi ❤️ in Flutter';
 
   // Local Storage Keys
-  static const String favoritesStorageKey = 'cine_favorite_movies_cache_v1';
-  static const String themeStorageKey = 'cine_theme_mode_v1';
-  static const String cachedFeedKey = 'cine_feed_cache_v1';
+  static const String favoritesStorageKey = 'cineflix_favorites_v1';
+  static const String themeStorageKey = 'cineflix_theme_mode_v1';
+  static const String cachedFeedKey = 'cineflix_feed_cache_v1';
 
   // TMDB Genre Map (Id to Name)
   static const Map<int, String> genreMap = {
@@ -36,4 +36,20 @@ class AppConstants {
     10752: 'War',
     37: 'Western',
   };
+
+  static List<Map<String, dynamic>> get genres => [
+        {'id': null, 'name': 'All'},
+        {'id': 28, 'name': 'Action'},
+        {'id': 12, 'name': 'Adventure'},
+        {'id': 16, 'name': 'Animation'},
+        {'id': 35, 'name': 'Comedy'},
+        {'id': 80, 'name': 'Crime'},
+        {'id': 18, 'name': 'Drama'},
+        {'id': 14, 'name': 'Fantasy'},
+        {'id': 27, 'name': 'Horror'},
+        {'id': 9648, 'name': 'Mystery'},
+        {'id': 10749, 'name': 'Romance'},
+        {'id': 878, 'name': 'Sci-Fi'},
+        {'id': 53, 'name': 'Thriller'},
+      ];
 }
