@@ -34,6 +34,7 @@ class MockMovieRepository implements MovieRepository {
       name: 'Official Trailer 1',
       site: 'YouTube',
       type: 'Trailer',
+      official: true,
     ),
     Video(
       id: 'v2',
@@ -41,13 +42,15 @@ class MockMovieRepository implements MovieRepository {
       name: 'Teaser',
       site: 'YouTube',
       type: 'Teaser',
+      official: false,
     ),
     Video(
       id: 'v3',
       key: 'abc999',
       name: 'Science Behind Interstellar',
       site: 'YouTube',
-      type: 'Behind the Scenes',
+      type: 'Featurette',
+      official: false,
     ),
     Video(
       id: 'v4',
@@ -55,6 +58,31 @@ class MockMovieRepository implements MovieRepository {
       name: 'Docking Scene Clip',
       site: 'YouTube',
       type: 'Clip',
+      official: false,
+    ),
+    Video(
+      id: 'v5',
+      key: 'vimeo123',
+      name: 'Vimeo Video',
+      site: 'Vimeo',
+      type: 'Trailer',
+      official: false,
+    ),
+    Video(
+      id: 'v6',
+      key: 'zSWdZVtXT7E',
+      name: 'Duplicate Trailer',
+      site: 'YouTube',
+      type: 'Trailer',
+      official: false,
+    ),
+    Video(
+      id: 'v7',
+      key: 'bts999',
+      name: 'Behind The Scenes',
+      site: 'YouTube',
+      type: 'Behind the Scenes',
+      official: false,
     ),
   ];
 
@@ -140,6 +168,7 @@ void main() {
       addFavoriteUseCase: AddFavorite(repository),
       removeFavoriteUseCase: RemoveFavorite(repository),
     );
+    MovieDetailViewModel.sessionFailedVideoKeys.clear();
   });
 
   const tMovie = Movie(
@@ -154,19 +183,31 @@ void main() {
     expect(viewModel.allVideos, isEmpty);
     expect(viewModel.isInlinePlayerActive, isFalse);
     expect(viewModel.isMuted, isFalse);
+    expect(viewModel.isLooping, isFalse);
+    expect(viewModel.isCaptionsEnabled, isFalse);
   });
 
-  test('loadMovie should populate movie, categorize videos, and set success state', () async {
+  test('loadMovie should filter, deduplicate, and prioritize official YouTube trailers', () async {
     await viewModel.loadMovie(tMovie);
 
     expect(viewModel.state, ViewState.success);
     expect(viewModel.movie?.title, 'Interstellar');
+    
+    // Exactly 4 valid videos remain: Vimeo, duplicate key, and Behind the Scenes filtered out
     expect(viewModel.allVideos.length, 4);
-    expect(viewModel.allVideos.where((v) => v.isTrailer).length, 1);
-    expect(viewModel.allVideos.where((v) => v.isTrailer).first.name, 'Official Trailer 1');
-    expect(viewModel.allVideos.where((v) => v.isTeaser).length, 1);
-    expect(viewModel.allVideos.where((v) => v.isBehindTheScenes).length, 1);
-    expect(viewModel.allVideos.where((v) => v.isClip).length, 1);
+
+    // Official trailer sorted first
+    expect(viewModel.allVideos[0].isTrailer, isTrue);
+    expect(viewModel.allVideos[0].name, 'Official Trailer 1');
+    expect(viewModel.allVideos[0].official, isTrue);
+
+    // Teaser comes next
+    expect(viewModel.allVideos[1].isTeaser, isTrue);
+
+    // Clip comes before Featurette
+    expect(viewModel.allVideos[2].isClip, isTrue);
+    expect(viewModel.allVideos[3].isFeaturette, isTrue);
+
     expect(viewModel.galleryImages.isNotEmpty, isTrue);
   });
 
@@ -178,6 +219,22 @@ void main() {
     expect(viewModel.isMuted, isFalse);
   });
 
+  test('toggleLoop should toggle isLooping flag', () {
+    expect(viewModel.isLooping, isFalse);
+    viewModel.toggleLoop();
+    expect(viewModel.isLooping, isTrue);
+    viewModel.toggleLoop();
+    expect(viewModel.isLooping, isFalse);
+  });
+
+  test('toggleCaptions should toggle isCaptionsEnabled flag', () {
+    expect(viewModel.isCaptionsEnabled, isFalse);
+    viewModel.toggleCaptions();
+    expect(viewModel.isCaptionsEnabled, isTrue);
+    viewModel.toggleCaptions();
+    expect(viewModel.isCaptionsEnabled, isFalse);
+  });
+
   test('closeInlinePlayer should set isInlinePlayerActive to false', () async {
     await viewModel.loadMovie(tMovie);
     viewModel.startVideoPlayback(0);
@@ -185,5 +242,40 @@ void main() {
 
     viewModel.closeInlinePlayer();
     expect(viewModel.isInlinePlayerActive, isFalse);
+  });
+
+  test('handlePlayerError should track failed key and auto-fallback to next playable video', () async {
+    await viewModel.loadMovie(tMovie);
+    viewModel.startVideoPlayback(0);
+    expect(viewModel.currentVideoIndex, 0);
+
+    final firstKey = viewModel.allVideos[0].key;
+    
+    // Simulate YouTube error 150 (playback restricted)
+    viewModel.handlePlayerError(150);
+
+    // Key must be tracked in session failures
+    expect(MovieDetailViewModel.sessionFailedVideoKeys.contains(firstKey), isTrue);
+
+    // Must automatically advance to index 1
+    expect(viewModel.currentVideoIndex, 1);
+    expect(viewModel.hasPlaybackError, isFalse);
+  });
+
+  test('handlePlayerError should show friendly error card when all videos fail', () async {
+    await viewModel.loadMovie(tMovie);
+    viewModel.startVideoPlayback(0);
+
+    // Mark all video keys as failed
+    for (final video in viewModel.allVideos) {
+      MovieDetailViewModel.sessionFailedVideoKeys.add(video.key);
+    }
+
+    // Trigger error code 150
+    viewModel.handlePlayerError(150);
+
+    expect(viewModel.hasPlaybackError, isTrue);
+    expect(viewModel.playbackErrorMessage.contains('restricted') || 
+           viewModel.playbackErrorMessage.contains('disabled'), isTrue);
   });
 }

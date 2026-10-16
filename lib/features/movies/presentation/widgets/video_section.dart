@@ -244,6 +244,27 @@ class _VideoSectionState extends State<VideoSection> {
                                         ],
                                       ),
                                     ),
+                                  )
+                                else if (MovieDetailViewModel.sessionFailedVideoKeys.contains(video.key))
+                                  Positioned(
+                                    bottom: 8,
+                                    right: 8,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: Colors.red.withValues(alpha: 0.85),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        'RESTRICTED',
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 8,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
                                   ),
                               ],
                             ),

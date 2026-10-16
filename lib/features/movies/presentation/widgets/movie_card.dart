@@ -13,6 +13,7 @@ class MovieCard extends StatelessWidget {
   final double width;
   final double height;
   final bool showTitle;
+  final String? heroTag;
 
   const MovieCard({
     super.key,
@@ -20,6 +21,7 @@ class MovieCard extends StatelessWidget {
     this.width = 135,
     this.height = 205,
     this.showTitle = true,
+    this.heroTag,
   });
 
   @override
@@ -36,7 +38,10 @@ class MovieCard extends StatelessWidget {
           Navigator.push(
             context,
             FadeSlidePageRoute(
-              page: MovieDetailScreen(movie: movie),
+              page: MovieDetailScreen(
+                movie: movie,
+                heroTag: heroTag,
+              ),
             ),
           );
         },
@@ -47,29 +52,13 @@ class MovieCard extends StatelessWidget {
             // Poster with Hero Animation & Badges
             Stack(
               children: [
-                Hero(
-                  tag: 'movie_poster_${movie.id}',
-                  child: Container(
-                    height: height,
-                    width: width,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(14),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.12),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: NetworkImageWithFallback(
-                      imageUrl: posterUrl,
-                      width: width,
-                      height: height,
-                      borderRadius: 14,
-                    ),
-                  ),
-                ),
+                if (heroTag != null)
+                  Hero(
+                    tag: heroTag!,
+                    child: _buildPoster(posterUrl, isDark),
+                  )
+                else
+                  _buildPoster(posterUrl, isDark),
 
                 // Rating Badge (Top Right)
                 if (movie.voteAverage > 0)
@@ -134,6 +123,29 @@ class MovieCard extends StatelessWidget {
             ],
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildPoster(String posterUrl, bool isDark) {
+    return Container(
+      height: height,
+      width: width,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.12),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: NetworkImageWithFallback(
+        imageUrl: posterUrl,
+        width: width,
+        height: height,
+        borderRadius: 14,
       ),
     );
   }

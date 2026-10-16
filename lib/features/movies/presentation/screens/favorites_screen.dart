@@ -89,6 +89,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                       children: [
                         MovieCard(
                           movie: movie,
+                          heroTag: 'fav_${movie.id}',
                           width: double.infinity,
                           height: 160,
                         ),

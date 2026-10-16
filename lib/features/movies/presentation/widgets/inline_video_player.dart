@@ -1,10 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:movie_app/core/theme/app_colors.dart';
-import 'package:movie_app/features/movies/presentation/screens/fullscreen_video_player_page.dart';
 import 'package:movie_app/features/movies/presentation/viewmodels/movie_detail_viewmodel.dart';
+import 'package:movie_app/features/movies/presentation/widgets/cinematic_video_player.dart';
 
 /// Cinematic inline video player at top of movie details
 class InlineVideoPlayer extends StatelessWidget {
@@ -25,89 +24,40 @@ class InlineVideoPlayer extends StatelessWidget {
       return _buildBackdropPlaceholder(context);
     }
 
-    final currentVideo = vm.currentVideo;
-
-    return AspectRatio(
-      aspectRatio: 16 / 9,
-      child: Stack(
-        alignment: Alignment.bottomCenter,
-        children: [
-          // Embedded YouTube Player
-          YoutubePlayer(
-            controller: vm.youtubeController!,
-            showVideoProgressIndicator: true,
-            progressIndicatorColor: AppColors.primary,
-            progressColors: const ProgressBarColors(
-              playedColor: AppColors.primary,
-              handleColor: AppColors.primary,
-              bufferedColor: Colors.white24,
-              backgroundColor: Colors.white12,
-            ),
-            topActions: [
-              IconButton(
-                icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-                onPressed: () => vm.closeInlinePlayer(),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  currentVideo?.name ?? movieTitle,
-                  style: GoogleFonts.outfit(
-                    color: Colors.white,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              IconButton(
-                icon: Icon(
-                  vm.isMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
-                  color: Colors.white,
-                  size: 20,
-                ),
-                onPressed: () => vm.toggleMute(),
-              ),
-              IconButton(
-                icon: const Icon(Icons.fullscreen_rounded, color: Colors.white, size: 24),
-                onPressed: () => _openFullScreen(context),
-              ),
-            ],
-          ),
-
-          // Top close pill button
-          Positioned(
-            top: 10,
-            right: 10,
-            child: GestureDetector(
-              onTap: () => vm.closeInlinePlayer(),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.6),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white24),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.close_rounded, size: 14, color: Colors.white),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Close Video',
-                      style: GoogleFonts.outfit(
-                        fontSize: 11,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
+    return CinematicVideoPlayer(
+      controller: vm.youtubeController!,
+      currentVideo: vm.currentVideo,
+      movieTitle: movieTitle,
+      playlist: vm.allVideos,
+      currentIndex: vm.currentVideoIndex,
+      failedVideoKeys: MovieDetailViewModel.sessionFailedVideoKeys,
+      isPlaying: vm.isPlaying,
+      isBuffering: vm.isBuffering,
+      isMuted: vm.isMuted,
+      isLooping: vm.isLooping,
+      isCaptionsEnabled: vm.isCaptionsEnabled,
+      isFullScreen: vm.isFullScreen,
+      isOffline: vm.isOffline,
+      hasPlaybackError: vm.hasPlaybackError,
+      playbackErrorMessage: vm.playbackErrorMessage,
+      currentPosition: vm.currentPosition,
+      totalDuration: vm.totalDuration,
+      bufferedFraction: vm.bufferedFraction,
+      playbackSpeed: vm.playbackSpeed,
+      playbackQuality: vm.currentQualityDisplay,
+      onTogglePlayPause: vm.togglePlayPause,
+      onToggleMute: vm.toggleMute,
+      onToggleLoop: vm.toggleLoop,
+      onToggleCaptions: vm.toggleCaptions,
+      onToggleFullScreen: vm.toggleFullScreen,
+      onPlayNext: vm.playNextVideo,
+      onPlayPrevious: vm.playPreviousVideo,
+      onClose: vm.closeInlinePlayer,
+      onRetry: vm.retryPlayback,
+      onSeekTo: vm.seekTo,
+      onSeekRelative: vm.seekRelative,
+      onSpeedChanged: vm.setPlaybackSpeed,
+      onSelectPlaylistVideo: vm.startVideoPlayback,
     );
   }
 
@@ -153,7 +103,7 @@ class InlineVideoPlayer extends StatelessWidget {
                   : () {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('No promotional trailer available for this movie.'),
+                          content: Text('No promotional trailer available for this title.'),
                           behavior: SnackBarBehavior.floating,
                         ),
                       );
@@ -193,18 +143,6 @@ class InlineVideoPlayer extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  void _openFullScreen(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => FullScreenVideoPlayerPage(
-          videos: vm.allVideos,
-          initialIndex: vm.currentVideoIndex,
-          movieTitle: movieTitle,
-        ),
       ),
     );
   }

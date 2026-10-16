@@ -8,6 +8,7 @@ import 'package:movie_app/features/movies/domain/usecases/get_popular_tv_shows.d
 import 'package:movie_app/features/movies/domain/usecases/get_top_rated_movies.dart';
 import 'package:movie_app/features/movies/domain/usecases/get_trending_movies.dart';
 import 'package:movie_app/features/movies/domain/usecases/get_upcoming_movies.dart';
+import 'package:movie_app/features/movies/presentation/viewmodels/movie_detail_viewmodel.dart';
 import 'package:movie_app/features/movies/presentation/viewmodels/view_state.dart';
 
 class HomeViewModel extends ChangeNotifier {
@@ -202,14 +203,20 @@ class HomeViewModel extends ChangeNotifier {
         res.fold(
           (_) {},
           (videos) {
-            final trailer = videos.firstWhere(
-              (v) => v.isYouTube && v.isTrailer,
-              orElse: () => videos.firstWhere(
-                (v) => v.isYouTube,
-                orElse: () => const Video(id: '', key: '', name: '', site: '', type: ''),
-              ),
-            );
-            if (trailer.key.isNotEmpty) {
+            Video? trailer;
+            for (final v in videos) {
+              if (v.isYouTube &&
+                  v.key.isNotEmpty &&
+                  !MovieDetailViewModel.sessionFailedVideoKeys.contains(v.key)) {
+                if (v.isTrailer) {
+                  trailer = v;
+                  break;
+                } else {
+                  trailer ??= v;
+                }
+              }
+            }
+            if (trailer != null) {
               _trailerMap[movie.id] = trailer;
             }
           },

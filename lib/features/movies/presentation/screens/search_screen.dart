@@ -160,6 +160,7 @@ class _SearchScreenState extends State<SearchScreen> {
           final movie = vm.movies[index];
           return MovieCard(
             movie: movie,
+            heroTag: 'search_${movie.id}',
             width: double.infinity,
             height: 160,
           );

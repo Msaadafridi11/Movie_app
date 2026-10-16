@@ -6,7 +6,6 @@ import 'package:movie_app/core/theme/app_colors.dart';
 import 'package:movie_app/core/widgets/developer_footer.dart';
 import 'package:movie_app/core/widgets/network_image_with_fallback.dart';
 import 'package:movie_app/features/movies/domain/entities/movie.dart';
-import 'package:movie_app/features/movies/presentation/screens/fullscreen_video_player_page.dart';
 import 'package:movie_app/features/movies/presentation/viewmodels/favorites_viewmodel.dart';
 import 'package:movie_app/features/movies/presentation/viewmodels/movie_detail_viewmodel.dart';
 import 'package:movie_app/features/movies/presentation/widgets/cast_card.dart';
@@ -21,22 +20,34 @@ import 'package:movie_app/injection_container.dart';
 /// Cinematic Movie Detail Screen featuring inline video player, playlist, ratings, and providers
 class MovieDetailScreen extends StatelessWidget {
   final Movie movie;
+  final String? heroTag;
 
-  const MovieDetailScreen({super.key, required this.movie});
+  const MovieDetailScreen({
+    super.key,
+    required this.movie,
+    this.heroTag,
+  });
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<MovieDetailViewModel>(
       create: (_) => getIt<MovieDetailViewModel>()..loadMovie(movie),
-      child: _MovieDetailContent(initialMovie: movie),
+      child: _MovieDetailContent(
+        initialMovie: movie,
+        heroTag: heroTag,
+      ),
     );
   }
 }
 
 class _MovieDetailContent extends StatefulWidget {
   final Movie initialMovie;
+  final String? heroTag;
 
-  const _MovieDetailContent({required this.initialMovie});
+  const _MovieDetailContent({
+    required this.initialMovie,
+    this.heroTag,
+  });
 
   @override
   State<_MovieDetailContent> createState() => _MovieDetailContentState();
@@ -91,6 +102,8 @@ class _MovieDetailContentState extends State<_MovieDetailContent>
     }
   }
 
+  final GlobalKey _playerGlobalKey = GlobalKey();
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -105,95 +118,135 @@ class _MovieDetailContentState extends State<_MovieDetailContent>
       highRes: true,
     );
 
-    return Scaffold(
-      backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
-      body: CustomScrollView(
-        controller: _scrollController,
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          // Top Sliver App Bar / Inline Video Player
-          SliverAppBar(
-            expandedHeight: 250,
-            pinned: true,
-            stretch: true,
-            backgroundColor: isDark ? const Color(0xFF11141A) : Colors.white,
-            leading: IconButton(
-              icon: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.black45,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white24, width: 0.8),
-                ),
-                child: const Icon(
-                  Icons.arrow_back_ios_new_rounded,
-                  size: 18,
-                  color: Colors.white,
-                ),
-              ),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-            actions: [
-              // Full-screen trailer button (if trailers available)
-              if (vm.allVideos.isNotEmpty)
-                IconButton(
-                  tooltip: 'Full Screen Player',
-                  icon: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.black45,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white24, width: 0.8),
-                    ),
-                    child: const Icon(
-                      Icons.fullscreen_rounded,
-                      size: 20,
-                      color: Colors.white,
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => FullScreenVideoPlayerPage(
-                          videos: vm.allVideos,
-                          initialIndex: vm.currentVideoIndex,
-                          movieTitle: currentMovie.title,
-                        ),
-                      ),
-                    );
-                  },
-                ),
+    return OrientationBuilder(
+      builder: (context, orientation) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            vm.onOrientationChanged(orientation);
+          }
+        });
 
-              // Animated Favorite Button
-              ScaleTransition(
-                scale: _heartScale,
-                child: IconButton(
-                  icon: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.black45,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white24, width: 0.8),
-                    ),
-                    child: Icon(
-                      vm.isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                      size: 20,
-                      color: vm.isFavorite ? AppColors.primary : Colors.white,
-                    ),
-                  ),
-                  onPressed: () => _onFavoriteTap(context, vm),
+        final isLandscape = orientation == Orientation.landscape;
+        final isPlayerActive = vm.isInlinePlayerActive && vm.youtubeController != null;
+
+        // In landscape while playing, expand player to fullscreen without losing controller
+        if (isLandscape && isPlayerActive) {
+          return PopScope(
+            canPop: false,
+            onPopInvokedWithResult: (didPop, _) {
+              if (didPop) return;
+              vm.exitFullScreen();
+            },
+            child: Scaffold(
+              backgroundColor: Colors.black,
+              body: SizedBox.expand(
+                key: _playerGlobalKey,
+                child: InlineVideoPlayer(
+                  vm: vm,
+                  backdropUrl: backdropUrl,
+                  movieTitle: currentMovie.title,
                 ),
               ),
-              const SizedBox(width: 8),
-            ],
-            flexibleSpace: FlexibleSpaceBar(
-              background: InlineVideoPlayer(
-                vm: vm,
-                backdropUrl: backdropUrl,
-                movieTitle: currentMovie.title,
-              ),
             ),
-          ),
+          );
+        }
+
+        // Standard Portrait Mode
+        return PopScope(
+          canPop: !vm.isFullScreen,
+          onPopInvokedWithResult: (didPop, _) {
+            if (didPop) return;
+            if (vm.isFullScreen) {
+              vm.exitFullScreen();
+            }
+          },
+          child: Scaffold(
+            backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
+            body: CustomScrollView(
+              controller: _scrollController,
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                // Top Sliver App Bar / Inline Video Player
+                SliverAppBar(
+                  expandedHeight: 250,
+                  pinned: true,
+                  stretch: true,
+                  backgroundColor: isDark ? const Color(0xFF11141A) : Colors.white,
+                  leading: IconButton(
+                    icon: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.black45,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white24, width: 0.8),
+                      ),
+                      child: const Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        size: 18,
+                        color: Colors.white,
+                      ),
+                    ),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                  actions: [
+                    // Full-screen trailer button (keeps one controller alive)
+                    if (vm.allVideos.isNotEmpty)
+                      IconButton(
+                        tooltip: 'Full Screen Player',
+                        icon: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.black45,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white24, width: 0.8),
+                          ),
+                          child: const Icon(
+                            Icons.fullscreen_rounded,
+                            size: 20,
+                            color: Colors.white,
+                          ),
+                        ),
+                        onPressed: () {
+                          if (!vm.isInlinePlayerActive) {
+                            vm.startVideoPlayback(0);
+                          }
+                          vm.enterFullScreen();
+                        },
+                      ),
+
+                    // Animated Favorite Button
+                    ScaleTransition(
+                      scale: _heartScale,
+                      child: IconButton(
+                        icon: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.black45,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white24, width: 0.8),
+                          ),
+                          child: Icon(
+                            vm.isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                            size: 20,
+                            color: vm.isFavorite ? AppColors.primary : Colors.white,
+                          ),
+                        ),
+                        onPressed: () => _onFavoriteTap(context, vm),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+                  flexibleSpace: FlexibleSpaceBar(
+                    background: SizedBox(
+                      key: _playerGlobalKey,
+                      child: InlineVideoPlayer(
+                        vm: vm,
+                        backdropUrl: backdropUrl,
+                        movieTitle: currentMovie.title,
+                      ),
+                    ),
+                  ),
+                ),
 
           // Main Body Content
           SliverToBoxAdapter(
@@ -207,36 +260,13 @@ class _MovieDetailContentState extends State<_MovieDetailContent>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Poster with rounded corners & shadow
-                      Hero(
-                        tag: 'movie_poster_${currentMovie.id}',
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(14),
-                          child: Container(
-                            width: 105,
-                            height: 155,
-                            decoration: BoxDecoration(
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.3),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: posterUrl.isNotEmpty
-                                ? NetworkImageWithFallback(
-                                    imageUrl: posterUrl,
-                                    width: 105,
-                                    height: 155,
-                                    fit: BoxFit.cover,
-                                  )
-                                : Container(
-                                    color: Colors.grey.shade800,
-                                    child: const Icon(Icons.movie_rounded, color: Colors.white),
-                                  ),
-                          ),
-                        ),
-                      ),
+                      if (widget.heroTag != null)
+                        Hero(
+                          tag: widget.heroTag!,
+                          child: _buildPosterWidget(posterUrl),
+                        )
+                      else
+                        _buildPosterWidget(posterUrl),
                       const SizedBox(width: 16),
 
                       // Title & Metadata
@@ -422,6 +452,39 @@ class _MovieDetailContentState extends State<_MovieDetailContent>
             ),
           ),
         ],
+      ),
+    ),
+  );
+},
+);
+}
+
+  Widget _buildPosterWidget(String posterUrl) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        width: 105,
+        height: 155,
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.3),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: posterUrl.isNotEmpty
+            ? NetworkImageWithFallback(
+                imageUrl: posterUrl,
+                width: 105,
+                height: 155,
+                fit: BoxFit.cover,
+              )
+            : Container(
+                color: Colors.grey.shade800,
+                child: const Icon(Icons.movie_rounded, color: Colors.white),
+              ),
       ),
     );
   }

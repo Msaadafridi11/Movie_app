@@ -98,7 +98,10 @@ class HorizontalMovieList extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       itemCount: movies.length,
                       itemBuilder: (context, index) {
-                        return MovieCard(movie: movies[index]);
+                        return MovieCard(
+                          movie: movies[index],
+                          heroTag: '${title.replaceAll(" ", "_")}_${movies[index].id}',
+                        );
                       },
                     ),
         ),

@@ -1,4 +1,9 @@
-import 'package:flutter/foundation.dart';
+import 'dart:async';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:movie_app/features/movies/domain/entities/cast.dart';
 import 'package:movie_app/features/movies/domain/entities/movie.dart';
@@ -41,7 +46,10 @@ class MovieDetailViewModel extends ChangeNotifier {
     required this.isFavoriteUseCase,
     required this.addFavoriteUseCase,
     required this.removeFavoriteUseCase,
-  });
+  }) {
+    _initConnectivity();
+    _loadSavedPlaybackSpeed();
+  }
 
   ViewState _state = ViewState.initial;
   ViewState get state => _state;
@@ -79,6 +87,9 @@ class MovieDetailViewModel extends ChangeNotifier {
   bool get isLoading => _state == ViewState.loading;
   bool get hasError => _state == ViewState.error;
 
+  // Session-wide registry of video IDs that cannot be embedded or are deleted
+  static final Set<String> sessionFailedVideoKeys = {};
+
   // Video playback state
   int _currentVideoIndex = 0;
   int get currentVideoIndex => _currentVideoIndex;
@@ -103,11 +114,72 @@ class MovieDetailViewModel extends ChangeNotifier {
   bool _isPlaying = false;
   bool get isPlaying => _isPlaying;
 
+  bool _isBuffering = false;
+  bool get isBuffering => _isBuffering;
+
+  bool _isLooping = false;
+  bool get isLooping => _isLooping;
+
+  bool _isCaptionsEnabled = false;
+  bool get isCaptionsEnabled => _isCaptionsEnabled;
+
+  bool _isFullScreen = false;
+  bool get isFullScreen => _isFullScreen;
+
+  bool _isOffline = false;
+  bool get isOffline => _isOffline;
+
+  bool _hasPlaybackError = false;
+  bool get hasPlaybackError => _hasPlaybackError;
+
+  String _playbackErrorMessage = '';
+  String get playbackErrorMessage => _playbackErrorMessage;
+
   Duration _currentPosition = Duration.zero;
   Duration get currentPosition => _currentPosition;
 
   Duration _totalDuration = Duration.zero;
   Duration get totalDuration => _totalDuration;
+
+  double _bufferedFraction = 0.0;
+  double get bufferedFraction => _bufferedFraction;
+
+  double _playbackSpeed = 1.0;
+  double get playbackSpeed => _playbackSpeed;
+
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySub;
+
+  String get currentQualityDisplay {
+    final raw = _youtubeController?.value.playbackQuality;
+    if (raw == null || raw.isEmpty || raw.toLowerCase() == 'auto') {
+      return 'Auto';
+    }
+    final clean = raw.toLowerCase().replaceAll('hd', '');
+    if (clean == '1080' || clean == '720' || clean == '480' || clean == '360') {
+      return '${clean}p';
+    }
+    return raw;
+  }
+
+  void _initConnectivity() {
+    _connectivitySub = Connectivity().onConnectivityChanged.listen((results) {
+      final hasConn = results.any((r) => r != ConnectivityResult.none);
+      final wasOffline = _isOffline;
+      _isOffline = !hasConn;
+      if (wasOffline && hasConn && _isInlinePlayerActive && _youtubeController != null) {
+        // Automatically recover when connection restores
+        _youtubeController?.reload();
+      }
+      notifyListeners();
+    });
+  }
+
+  Future<void> _loadSavedPlaybackSpeed() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _playbackSpeed = prefs.getDouble('pref_video_playback_speed') ?? 1.0;
+    } catch (_) {}
+  }
 
   Future<void> loadMovie(Movie initialMovie) async {
     _movie = initialMovie;
@@ -122,118 +194,151 @@ class MovieDetailViewModel extends ChangeNotifier {
     _omdbRating = null;
     _currentVideoIndex = 0;
     _isInlinePlayerActive = false;
+    _hasPlaybackError = false;
+    _playbackErrorMessage = '';
     _disposePlayer();
     notifyListeners();
 
     final isTv = initialMovie.isTvShow;
 
     // Check favorite status
-    final favRes = await isFavoriteUseCase(initialMovie.id);
-    favRes.fold((_) => _isFavorite = false, (fav) => _isFavorite = fav);
+    try {
+      final favRes = await isFavoriteUseCase(initialMovie.id);
+      favRes.fold((_) => _isFavorite = false, (fav) => _isFavorite = fav);
+    } catch (_) {
+      _isFavorite = false;
+    }
 
-    // Fetch details, credits, similar, recommendations, trailers, watch providers, images in parallel
-    final results = await Future.wait([
-      getMovieDetails(initialMovie.id, isTv: isTv),
-      getMovieCredits(initialMovie.id, isTv: isTv),
-      getSimilarMovies(initialMovie.id, isTv: isTv),
-      getMovieRecommendations(initialMovie.id, isTv: isTv),
-      getMovieTrailers(initialMovie.id, isTv: isTv),
-      getMovieWatchProviders(initialMovie.id, isTv: isTv),
-      getMovieImages(initialMovie.id, isTv: isTv),
-    ]);
+    // Fetch movie data in parallel
+    try {
+      final results = await Future.wait([
+        getMovieDetails(initialMovie.id, isTv: isTv),
+        getMovieCredits(initialMovie.id, isTv: isTv),
+        getSimilarMovies(initialMovie.id, isTv: isTv),
+        getMovieRecommendations(initialMovie.id, isTv: isTv),
+        getMovieTrailers(initialMovie.id, isTv: isTv),
+        getMovieWatchProviders(initialMovie.id, isTv: isTv),
+        getMovieImages(initialMovie.id, isTv: isTv),
+      ]);
 
-    final detailsRes = results[0];
-    final creditsRes = results[1];
-    final similarRes = results[2];
-    final recsRes = results[3];
-    final trailersRes = results[4];
-    final providersRes = results[5];
-    final imagesRes = results[6];
+      final detailsRes = results[0];
+      final creditsRes = results[1];
+      final similarRes = results[2];
+      final recsRes = results[3];
+      final trailersRes = results[4];
+      final providersRes = results[5];
+      final imagesRes = results[6];
 
-    detailsRes.fold(
-      (_) => _movie = initialMovie,
-      (detailed) => _movie = detailed as Movie,
-    );
+      detailsRes.fold(
+        (_) => _movie = initialMovie,
+        (detailed) => _movie = detailed as Movie,
+      );
 
-    creditsRes.fold(
-      (_) => _castList = [],
-      (credits) => _castList = credits as List<Cast>,
-    );
+      creditsRes.fold(
+        (_) => _castList = [],
+        (credits) => _castList = credits as List<Cast>,
+      );
 
-    similarRes.fold(
-      (_) => _similarMovies = [],
-      (similar) => _similarMovies = similar as List<Movie>,
-    );
+      similarRes.fold(
+        (_) => _similarMovies = [],
+        (similar) => _similarMovies = similar as List<Movie>,
+      );
 
-    recsRes.fold(
-      (_) => _recommendations = [],
-      (recs) => _recommendations = recs as List<Movie>,
-    );
+      recsRes.fold(
+        (_) => _recommendations = [],
+        (recs) => _recommendations = recs as List<Movie>,
+      );
 
-    trailersRes.fold(
-      (_) => _allVideos = [],
-      (videos) {
-        final list = (videos as List<Video>)
-            .where((v) => v.isYouTube && v.key.isNotEmpty)
-            .toList();
+      trailersRes.fold(
+        (_) => _allVideos = [],
+        (videos) {
+          final list = (videos as List<Video>);
+          const allowedTypes = {'trailer', 'teaser', 'clip', 'featurette'};
+          final seenKeys = <String>{};
+          final filtered = <Video>[];
 
-        // Sort: Trailers first, then Teasers, Clips, BTS
-        list.sort((a, b) {
-          int priority(Video v) {
-            if (v.isTrailer) return 0;
-            if (v.isTeaser) return 1;
-            if (v.isClip) return 2;
-            if (v.isBehindTheScenes) return 3;
-            return 4;
+          for (final v in list) {
+            final key = v.key.trim();
+            final type = v.type.toLowerCase().trim();
+            final site = v.site.toLowerCase().trim();
+
+            if (site == 'youtube' &&
+                key.isNotEmpty &&
+                allowedTypes.contains(type) &&
+                !seenKeys.contains(key)) {
+              seenKeys.add(key);
+              filtered.add(v);
+            }
           }
-          return priority(a).compareTo(priority(b));
-        });
 
-        _allVideos = list;
-      },
-    );
+          filtered.sort((a, b) {
+            if (a.official != b.official) {
+              return a.official ? -1 : 1;
+            }
+            int priority(Video v) {
+              final t = v.type.toLowerCase().trim();
+              if (t == 'trailer') return 0;
+              if (t == 'teaser') return 1;
+              if (t == 'clip') return 2;
+              if (t == 'featurette') return 3;
+              return 4;
+            }
+            return priority(a).compareTo(priority(b));
+          });
 
-    providersRes.fold(
-      (_) => _watchProviders = [],
-      (providers) => _watchProviders = providers as List<WatchProvider>,
-    );
+          _allVideos = filtered;
+        },
+      );
 
-    imagesRes.fold(
-      (_) => _galleryImages = [],
-      (images) => _galleryImages = images as List<String>,
-    );
+      providersRes.fold(
+        (_) => _watchProviders = [],
+        (providers) => _watchProviders = providers as List<WatchProvider>,
+      );
 
-    _state = ViewState.success;
-    notifyListeners();
+      imagesRes.fold(
+        (_) => _galleryImages = [],
+        (images) => _galleryImages = images as List<String>,
+      );
 
-    // Fetch OMDb in background (fail silently)
-    _fetchOmdbRating();
+      _state = ViewState.success;
+      notifyListeners();
+
+      _fetchOmdbRating();
+    } catch (e) {
+      _errorMessage = e.toString();
+      _state = ViewState.error;
+      notifyListeners();
+    }
   }
 
   Future<void> _fetchOmdbRating() async {
     final current = _movie;
     if (current == null) return;
-    final res = await getOmdbRatings(
-      imdbId: current.imdbId,
-      title: current.title,
-      year: current.releaseYear,
-    );
-    res.fold(
-      (_) => _omdbRating = null,
-      (rating) {
-        _omdbRating = rating;
-        notifyListeners();
-      },
-    );
+    try {
+      final res = await getOmdbRatings(
+        imdbId: current.imdbId,
+        title: current.title,
+        year: current.releaseYear,
+      );
+      res.fold(
+        (_) => _omdbRating = null,
+        (rating) {
+          _omdbRating = rating;
+          notifyListeners();
+        },
+      );
+    } catch (_) {}
   }
 
-  /// Start playing video at specific index
+  /// Start playing video at specific index, skipping any known failed keys
   void startVideoPlayback(int index) {
     if (_allVideos.isEmpty || index < 0 || index >= _allVideos.length) return;
     _currentVideoIndex = index;
     final video = _allVideos[index];
 
     _isInlinePlayerActive = true;
+    _hasPlaybackError = false;
+    _playbackErrorMessage = '';
 
     if (_youtubeController == null) {
       _initPlayer(video.key);
@@ -263,11 +368,14 @@ class MovieDetailViewModel extends ChangeNotifier {
         mute: _isMuted,
         isLive: false,
         forceHD: false,
-        enableCaption: false,
-        hideControls: false,
+        enableCaption: _isCaptionsEnabled,
+        hideControls: true, // Netflix/YouTube style custom overlay
       ),
     )..addListener(_playerListener);
+
     _isPlaying = true;
+    _hasPlaybackError = false;
+    _playbackErrorMessage = '';
   }
 
   void _playerListener() {
@@ -275,31 +383,123 @@ class MovieDetailViewModel extends ChangeNotifier {
     if (controller == null) return;
 
     final value = controller.value;
+
+    // Handle YouTube error codes: 2, 5, 100, 101, 150
+    const youtubeErrorCodes = {2, 5, 100, 101, 150};
+    if (youtubeErrorCodes.contains(value.errorCode)) {
+      debugPrint('YouTube Player Error Code ${value.errorCode} encountered for video $currentVideo');
+      _handlePlayerError(value.errorCode);
+      return;
+    }
+
     _isPlaying = value.isPlaying;
+    _isBuffering = value.playerState == PlayerState.buffering;
     _currentPosition = value.position;
     _totalDuration = value.metaData.duration;
+    _bufferedFraction = value.buffered;
 
-    // Auto play next video on ended
+    // Keep screen awake while playing
+    _setWakelock(_isPlaying);
+
+    // Auto play next video on ended (or loop if looping)
     if (value.playerState == PlayerState.ended) {
-      playNextVideo();
+      if (_isLooping) {
+        seekTo(Duration.zero);
+        controller.play();
+      } else {
+        playNextVideo();
+      }
     }
     notifyListeners();
   }
 
+  @visibleForTesting
+  void handlePlayerError(int errorCode) => _handlePlayerError(errorCode);
+
+  void _handlePlayerError(int errorCode) {
+    final failedVideo = currentVideo;
+    if (failedVideo != null) {
+      sessionFailedVideoKeys.add(failedVideo.key);
+      debugPrint('Marked video ${failedVideo.key} (${failedVideo.name}) as failed for session.');
+    }
+
+    // Attempt to automatically fallback to the next un-failed video
+    final nextValidIndex = _findNextPlayableIndex(_currentVideoIndex + 1);
+    if (nextValidIndex != null) {
+      debugPrint('Auto-fallback: Playing next available video at index $nextValidIndex');
+      startVideoPlayback(nextValidIndex);
+    } else {
+      // Check from beginning of list
+      final fallbackIndex = _findNextPlayableIndex(0);
+      if (fallbackIndex != null && fallbackIndex != _currentVideoIndex) {
+        debugPrint('Auto-fallback: Playing alternative available video at index $fallbackIndex');
+        startVideoPlayback(fallbackIndex);
+      } else {
+        // All videos failed or restricted
+        _hasPlaybackError = true;
+        _playbackErrorMessage = _getErrorMessageForCode(errorCode);
+        _disposePlayer();
+        notifyListeners();
+      }
+    }
+  }
+
+  int? _findNextPlayableIndex(int startIndex) {
+    if (_allVideos.isEmpty) return null;
+    for (int i = startIndex; i < _allVideos.length; i++) {
+      if (!sessionFailedVideoKeys.contains(_allVideos[i].key)) {
+        return i;
+      }
+    }
+    return null;
+  }
+
+  String _getErrorMessageForCode(int errorCode) {
+    switch (errorCode) {
+      case 101:
+      case 150:
+        return 'The content owner has disabled playback in third-party embedded apps.';
+      case 100:
+        return 'This trailer was removed from YouTube or marked as private.';
+      case 2:
+        return 'The trailer link or video ID is invalid.';
+      case 5:
+        return 'The video format cannot be played by the HTML5 player.';
+      default:
+        return "This promotional video can't be played in-app.";
+    }
+  }
+
+  void retryPlayback() {
+    final current = currentVideo;
+    if (current != null) {
+      sessionFailedVideoKeys.remove(current.key);
+    }
+    _hasPlaybackError = false;
+    _playbackErrorMessage = '';
+    startVideoPlayback(_currentVideoIndex);
+  }
+
   void playNextVideo() {
     if (_allVideos.isEmpty) return;
-    if (_currentVideoIndex < _allVideos.length - 1) {
-      startVideoPlayback(_currentVideoIndex + 1);
+    final nextIdx = _findNextPlayableIndex(_currentVideoIndex + 1);
+    if (nextIdx != null) {
+      startVideoPlayback(nextIdx);
     } else {
-      // Loop back to start or pause
-      startVideoPlayback(0);
+      final firstIdx = _findNextPlayableIndex(0);
+      if (firstIdx != null) {
+        startVideoPlayback(firstIdx);
+      }
     }
   }
 
   void playPreviousVideo() {
     if (_allVideos.isEmpty) return;
-    if (_currentVideoIndex > 0) {
-      startVideoPlayback(_currentVideoIndex - 1);
+    for (int i = _currentVideoIndex - 1; i >= 0; i--) {
+      if (!sessionFailedVideoKeys.contains(_allVideos[i].key)) {
+        startVideoPlayback(i);
+        return;
+      }
     }
   }
 
@@ -328,39 +528,133 @@ class MovieDetailViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void toggleLoop() {
+    _isLooping = !_isLooping;
+    notifyListeners();
+  }
+
+  void toggleCaptions() {
+    _isCaptionsEnabled = !_isCaptionsEnabled;
+    notifyListeners();
+  }
+
   void seekTo(Duration position) {
     _youtubeController?.seekTo(position);
+  }
+
+  void seekRelative(int seconds) {
+    final current = _currentPosition;
+    final target = current + Duration(seconds: seconds);
+    final clamped = target < Duration.zero
+        ? Duration.zero
+        : (target > _totalDuration ? _totalDuration : target);
+    seekTo(clamped);
+  }
+
+  Future<void> setPlaybackSpeed(double speed) async {
+    _playbackSpeed = speed;
+    _youtubeController?.setPlaybackRate(speed);
+    notifyListeners();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setDouble('pref_video_playback_speed', speed);
+    } catch (_) {}
+  }
+
+  void _setWakelock(bool enable) {
+    try {
+      if (enable) {
+        WakelockPlus.enable().catchError((_) {});
+      } else {
+        WakelockPlus.disable().catchError((_) {});
+      }
+    } catch (_) {}
+  }
+
+  void enterFullScreen() {
+    _isFullScreen = true;
+    try {
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight,
+      ]);
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    } catch (_) {}
+    notifyListeners();
+  }
+
+  void exitFullScreen() {
+    _isFullScreen = false;
+    try {
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+      ]);
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    } catch (_) {}
+    notifyListeners();
+  }
+
+  void toggleFullScreen() {
+    if (_isFullScreen) {
+      exitFullScreen();
+    } else {
+      enterFullScreen();
+    }
+  }
+
+  void onOrientationChanged(Orientation orientation) {
+    if (orientation == Orientation.landscape && !_isFullScreen) {
+      _isFullScreen = true;
+      try {
+        SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+      } catch (_) {}
+      notifyListeners();
+    } else if (orientation == Orientation.portrait && _isFullScreen) {
+      _isFullScreen = false;
+      try {
+        SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+      } catch (_) {}
+      notifyListeners();
+    }
   }
 
   void pausePlayer() {
     _youtubeController?.pause();
     _isPlaying = false;
+    _setWakelock(false);
     notifyListeners();
   }
 
   void resumePlayer() {
-    if (_isInlinePlayerActive) {
+    if (_isInlinePlayerActive && !_hasPlaybackError) {
       _youtubeController?.play();
       _isPlaying = true;
+      _setWakelock(true);
       notifyListeners();
     }
   }
 
   void closeInlinePlayer() {
     _isInlinePlayerActive = false;
+    _hasPlaybackError = false;
     _disposePlayer();
+    exitFullScreen();
     notifyListeners();
   }
 
   void _disposePlayer() {
+    _setWakelock(false);
     if (_youtubeController != null) {
       _youtubeController!.removeListener(_playerListener);
       _youtubeController!.dispose();
       _youtubeController = null;
     }
     _isPlaying = false;
+    _isBuffering = false;
     _currentPosition = Duration.zero;
     _totalDuration = Duration.zero;
+    _bufferedFraction = 0.0;
   }
 
   Future<void> toggleFavorite() async {
@@ -380,7 +674,13 @@ class MovieDetailViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
+    _connectivitySub?.cancel();
     _disposePlayer();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     super.dispose();
   }
 }

@@ -146,16 +146,53 @@ class MovieRemoteDataSourceImpl implements MovieRemoteDataSource {
 
   @override
   Future<List<VideoModel>> getMovieTrailers(int id, {bool isTv = false}) async {
-    final endpoint = isTv ? ApiConstants.tvDetails : ApiConstants.movieDetails;
-    final data = await dioClient.get('$endpoint/$id/videos');
-    if (data is Map<String, dynamic> && data['results'] is List) {
-      final list = data['results'] as List;
-      return list
-          .map((item) => VideoModel.fromJson(Map<String, dynamic>.from(item as Map)))
-          .where((v) => v.site.toLowerCase() == 'youtube' && v.key.isNotEmpty)
-          .toList();
+    try {
+      final endpoint = isTv ? ApiConstants.tvDetails : ApiConstants.movieDetails;
+      final data = await dioClient.get('$endpoint/$id/videos');
+      if (data is Map<String, dynamic> && data['results'] is List) {
+        final list = data['results'] as List;
+        const allowedTypes = {'trailer', 'teaser', 'clip', 'featurette'};
+        final seenKeys = <String>{};
+        final filtered = <VideoModel>[];
+
+        for (final item in list) {
+          if (item is! Map) continue;
+          final video = VideoModel.fromJson(Map<String, dynamic>.from(item));
+          final key = video.key.trim();
+          final type = video.type.toLowerCase().trim();
+          final site = video.site.toLowerCase().trim();
+
+          if (site == 'youtube' &&
+              key.isNotEmpty &&
+              allowedTypes.contains(type) &&
+              !seenKeys.contains(key)) {
+            seenKeys.add(key);
+            filtered.add(video);
+          }
+        }
+
+        // Sort: Official first, then type priority (Trailer > Teaser > Clip > Featurette)
+        filtered.sort((a, b) {
+          if (a.official != b.official) {
+            return a.official ? -1 : 1;
+          }
+          int priority(VideoModel v) {
+            final t = v.type.toLowerCase().trim();
+            if (t == 'trailer') return 0;
+            if (t == 'teaser') return 1;
+            if (t == 'clip') return 2;
+            if (t == 'featurette') return 3;
+            return 4;
+          }
+          return priority(a).compareTo(priority(b));
+        });
+
+        return filtered;
+      }
+      return [];
+    } catch (_) {
+      return [];
     }
-    return [];
   }
 
   @override
