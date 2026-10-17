@@ -58,6 +58,7 @@ class _MovieDetailContentState extends State<_MovieDetailContent>
   late final ScrollController _scrollController;
   late final AnimationController _heartAnimController;
   late final Animation<double> _heartScale;
+  Orientation? _lastOrientation;
 
   @override
   void initState() {
@@ -120,11 +121,14 @@ class _MovieDetailContentState extends State<_MovieDetailContent>
 
     return OrientationBuilder(
       builder: (context, orientation) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            vm.onOrientationChanged(orientation);
-          }
-        });
+        if (_lastOrientation != orientation) {
+          _lastOrientation = orientation;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              vm.onOrientationChanged(orientation);
+            }
+          });
+        }
 
         final isLandscape = orientation == Orientation.landscape;
         final isPlayerActive = vm.isInlinePlayerActive && vm.youtubeController != null;
@@ -175,24 +179,22 @@ class _MovieDetailContentState extends State<_MovieDetailContent>
                   leading: IconButton(
                     icon: Container(
                       padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: Colors.black45,
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white24, width: 0.8),
                       ),
                       child: const Icon(
-                        Icons.arrow_back_ios_new_rounded,
-                        size: 18,
+                        Icons.arrow_back_rounded,
                         color: Colors.white,
+                        size: 20,
                       ),
                     ),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                   actions: [
-                    // Full-screen trailer button (keeps one controller alive)
-                    if (vm.allVideos.isNotEmpty)
+                    // Fullscreen Toggle
+                    if (vm.youtubeController != null)
                       IconButton(
-                        tooltip: 'Full Screen Player',
                         icon: Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
@@ -248,216 +250,216 @@ class _MovieDetailContentState extends State<_MovieDetailContent>
                   ),
                 ),
 
-          // Main Body Content
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Poster + Title + Meta row
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Poster with rounded corners & shadow
-                      if (widget.heroTag != null)
-                        Hero(
-                          tag: widget.heroTag!,
-                          child: _buildPosterWidget(posterUrl),
-                        )
-                      else
-                        _buildPosterWidget(posterUrl),
-                      const SizedBox(width: 16),
-
-                      // Title & Metadata
-                      Expanded(
-                        child: Column(
+                // Main Body Content
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Poster + Title + Meta row
+                        Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              currentMovie.title,
-                              style: GoogleFonts.outfit(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: isDark ? Colors.white : Colors.black87,
-                                height: 1.2,
-                              ),
-                            ),
-                            if (currentMovie.tagline != null &&
-                                currentMovie.tagline!.isNotEmpty) ...[
-                              const SizedBox(height: 4),
-                              Text(
-                                '"${currentMovie.tagline}"',
-                                style: GoogleFonts.outfit(
-                                  fontSize: 12,
-                                  fontStyle: FontStyle.italic,
-                                  color: isDark ? Colors.white60 : Colors.black54,
-                                ),
-                              ),
-                            ],
-                            const SizedBox(height: 8),
+                            // Poster with rounded corners & shadow
+                            if (widget.heroTag != null)
+                              Hero(
+                                tag: widget.heroTag!,
+                                child: _buildPosterWidget(posterUrl),
+                              )
+                            else
+                              _buildPosterWidget(posterUrl),
+                            const SizedBox(width: 16),
 
-                            // Release year, runtime, TV badge
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 4,
-                              children: [
-                                _buildMetaPill(currentMovie.releaseYear, isDark),
-                                if (currentMovie.formattedRuntime.isNotEmpty)
-                                  _buildMetaPill(currentMovie.formattedRuntime, isDark),
-                                if (currentMovie.isTvShow)
-                                  _buildMetaPill('TV SERIES', isDark, isHighlight: true),
-                              ],
+                            // Title & Metadata
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    currentMovie.title,
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: isDark ? Colors.white : Colors.black87,
+                                      height: 1.2,
+                                    ),
+                                  ),
+                                  if (currentMovie.tagline != null &&
+                                      currentMovie.tagline!.isNotEmpty) ...[
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '"${currentMovie.tagline}"',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 12,
+                                        fontStyle: FontStyle.italic,
+                                        color: isDark ? Colors.white60 : Colors.black54,
+                                      ),
+                                    ),
+                                  ],
+                                  const SizedBox(height: 8),
+
+                                  // Release year, runtime, TV badge
+                                  Wrap(
+                                    spacing: 8,
+                                    runSpacing: 4,
+                                    children: [
+                                      _buildMetaPill(currentMovie.releaseYear, isDark),
+                                      if (currentMovie.formattedRuntime.isNotEmpty)
+                                        _buildMetaPill(currentMovie.formattedRuntime, isDark),
+                                      if (currentMovie.isTvShow)
+                                        _buildMetaPill('TV SERIES', isDark, isHighlight: true),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
+                        const SizedBox(height: 16),
 
-                  // Ratings Row (TMDB, IMDb, Rotten Tomatoes)
-                  OmdbRatingBadgeRow(
-                    tmdbRating: currentMovie.voteAverage,
-                    voteCount: currentMovie.voteCount,
-                    omdbRating: vm.omdbRating,
-                  ),
-                  const SizedBox(height: 16),
+                        // Ratings Row (TMDB, IMDb, Rotten Tomatoes)
+                        OmdbRatingBadgeRow(
+                          tmdbRating: currentMovie.voteAverage,
+                          voteCount: currentMovie.voteCount,
+                          omdbRating: vm.omdbRating,
+                        ),
+                        const SizedBox(height: 16),
 
-                  // Genres Chips
-                  if (currentMovie.genres.isNotEmpty) ...[
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: currentMovie.genres.map((g) {
-                        return Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                          decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF1E212A) : const Color(0xFFF1F3F8),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: isDark ? Colors.white12 : Colors.black12,
-                            ),
+                        // Genres Chips
+                        if (currentMovie.genres.isNotEmpty) ...[
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: currentMovie.genres.map((g) {
+                              return Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                decoration: BoxDecoration(
+                                  color: isDark ? const Color(0xFF1E212A) : const Color(0xFFF1F3F8),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: isDark ? Colors.white12 : Colors.black12,
+                                  ),
+                                ),
+                                child: Text(
+                                  g,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                    color: isDark ? Colors.white70 : Colors.black87,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
                           ),
-                          child: Text(
-                            g,
-                            style: GoogleFonts.outfit(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                              color: isDark ? Colors.white70 : Colors.black87,
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(height: 18),
-                  ],
+                          const SizedBox(height: 18),
+                        ],
 
-                  // Overview / Synopsis
-                  Text(
-                    'Synopsis',
-                    style: GoogleFonts.outfit(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    currentMovie.overview.isNotEmpty
-                        ? currentMovie.overview
-                        : 'No synopsis available for this title.',
-                    style: GoogleFonts.outfit(
-                      fontSize: 14,
-                      height: 1.5,
-                      color: isDark ? Colors.white70 : Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Legal Watch Providers Section
-                  if (vm.watchProviders.isNotEmpty) ...[
-                    WatchProvidersSection(providers: vm.watchProviders),
-                    const SizedBox(height: 24),
-                  ],
-
-                  // Horizontal Categorized Videos (Trailers, Teasers, Clips, BTS)
-                  if (vm.allVideos.isNotEmpty) ...[
-                    VideoSection(vm: vm),
-                    const SizedBox(height: 24),
-                  ],
-
-                  // Cast & Crew Section
-                  if (vm.castList.isNotEmpty) ...[
-                    Row(
-                      children: [
-                        const Icon(Icons.people_alt_rounded, size: 20, color: AppColors.primary),
-                        const SizedBox(width: 8),
+                        // Overview / Synopsis
                         Text(
-                          'Top Cast',
-                          style: GoogleFonts.outfit(
+                          'Synopsis',
+                          style: GoogleFonts.poppins(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                             color: isDark ? Colors.white : Colors.black87,
                           ),
                         ),
+                        const SizedBox(height: 8),
+                        Text(
+                          currentMovie.overview.isNotEmpty
+                              ? currentMovie.overview
+                              : 'No synopsis available for this title.',
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            height: 1.5,
+                            color: isDark ? Colors.white70 : Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Legal Watch Providers Section
+                        if (vm.watchProviders.isNotEmpty) ...[
+                          WatchProvidersSection(providers: vm.watchProviders),
+                          const SizedBox(height: 24),
+                        ],
+
+                        // Horizontal Categorized Videos (Trailers, Teasers, Clips, BTS)
+                        if (vm.allVideos.isNotEmpty) ...[
+                          VideoSection(vm: vm),
+                          const SizedBox(height: 24),
+                        ],
+
+                        // Cast & Crew Section
+                        if (vm.castList.isNotEmpty) ...[
+                          Row(
+                            children: [
+                              const Icon(Icons.people_alt_rounded, size: 20, color: AppColors.primary),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Top Cast',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark ? Colors.white : Colors.black87,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            height: 135,
+                            child: ListView.separated(
+                              scrollDirection: Axis.horizontal,
+                              physics: const BouncingScrollPhysics(),
+                              itemCount: vm.castList.take(15).length,
+                              separatorBuilder: (_, __) => const SizedBox(width: 12),
+                              itemBuilder: (context, index) {
+                                return CastCard(cast: vm.castList[index]);
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                        ],
+
+                        // Photo Gallery Section
+                        if (vm.galleryImages.isNotEmpty) ...[
+                          ImageGallerySection(imagePaths: vm.galleryImages),
+                          const SizedBox(height: 24),
+                        ],
+
+                        // Related & Recommended Movies
+                        if (vm.recommendations.isNotEmpty) ...[
+                          HorizontalMovieList(
+                            title: 'More Like This',
+                            movies: vm.recommendations,
+                          ),
+                          const SizedBox(height: 24),
+                        ],
+
+                        // Similar Movies Section
+                        if (vm.similarMovies.isNotEmpty) ...[
+                          HorizontalMovieList(
+                            title: 'Similar Titles',
+                            movies: vm.similarMovies,
+                          ),
+                          const SizedBox(height: 24),
+                        ],
+
+                        // Footer
+                        const SizedBox(height: 12),
+                        const DeveloperFooter(),
+                        const SizedBox(height: 20),
                       ],
                     ),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      height: 135,
-                      child: ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        physics: const BouncingScrollPhysics(),
-                        itemCount: vm.castList.take(15).length,
-                        separatorBuilder: (_, __) => const SizedBox(width: 12),
-                        itemBuilder: (context, index) {
-                          return CastCard(cast: vm.castList[index]);
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                  ],
-
-                  // Photo Gallery Section
-                  if (vm.galleryImages.isNotEmpty) ...[
-                    ImageGallerySection(imagePaths: vm.galleryImages),
-                    const SizedBox(height: 24),
-                  ],
-
-                  // Related & Recommended Movies (Related Videos section like Netflix/YouTube)
-                  if (vm.recommendations.isNotEmpty) ...[
-                    HorizontalMovieList(
-                      title: 'More Like This',
-                      movies: vm.recommendations,
-                    ),
-                    const SizedBox(height: 24),
-                  ],
-
-                  // Similar Movies Section
-                  if (vm.similarMovies.isNotEmpty) ...[
-                    HorizontalMovieList(
-                      title: 'Similar Titles',
-                      movies: vm.similarMovies,
-                    ),
-                    const SizedBox(height: 24),
-                  ],
-
-                  // Footer
-                  const SizedBox(height: 12),
-                  const DeveloperFooter(),
-                  const SizedBox(height: 20),
-                ],
-              ),
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
-      ),
-    ),
-  );
-},
-);
-}
+        );
+      },
+    );
+  }
 
   Widget _buildPosterWidget(String posterUrl) {
     return ClipRRect(
@@ -500,7 +502,7 @@ class _MovieDetailContentState extends State<_MovieDetailContent>
       ),
       child: Text(
         text,
-        style: GoogleFonts.outfit(
+        style: GoogleFonts.poppins(
           fontSize: 11,
           fontWeight: FontWeight.w600,
           color: isHighlight

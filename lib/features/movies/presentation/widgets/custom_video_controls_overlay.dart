@@ -229,7 +229,7 @@ class _CustomVideoControlsOverlayState extends State<CustomVideoControlsOverlay>
                     const SizedBox(height: 2),
                     Text(
                       _skipFeedbackSeconds! > 0 ? '+10s' : '-10s',
-                      style: GoogleFonts.outfit(
+                      style: GoogleFonts.poppins(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
@@ -265,7 +265,7 @@ class _CustomVideoControlsOverlayState extends State<CustomVideoControlsOverlay>
                     const SizedBox(width: 10),
                     Text(
                       'Buffering...',
-                      style: GoogleFonts.outfit(
+                      style: GoogleFonts.poppins(
                         fontSize: 12,
                         color: Colors.white,
                         fontWeight: FontWeight.w500,
@@ -296,7 +296,7 @@ class _CustomVideoControlsOverlayState extends State<CustomVideoControlsOverlay>
                   Expanded(
                     child: Text(
                       'No Internet connection • Check network',
-                      style: GoogleFonts.outfit(fontSize: 12, color: Colors.white),
+                      style: GoogleFonts.poppins(fontSize: 12, color: Colors.white),
                     ),
                   ),
                   if (widget.onRetryOffline != null)
@@ -304,7 +304,7 @@ class _CustomVideoControlsOverlayState extends State<CustomVideoControlsOverlay>
                       onTap: widget.onRetryOffline,
                       child: Text(
                         'Retry',
-                        style: GoogleFonts.outfit(
+                        style: GoogleFonts.poppins(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
@@ -395,7 +395,7 @@ class _CustomVideoControlsOverlayState extends State<CustomVideoControlsOverlay>
               children: [
                 Text(
                   widget.currentVideo?.name ?? widget.movieTitle,
-                  style: GoogleFonts.outfit(
+                  style: GoogleFonts.poppins(
                     color: Colors.white,
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
@@ -405,7 +405,7 @@ class _CustomVideoControlsOverlayState extends State<CustomVideoControlsOverlay>
                 ),
                 Text(
                   widget.movieTitle,
-                  style: GoogleFonts.outfit(
+                  style: GoogleFonts.poppins(
                     color: Colors.white60,
                     fontSize: 11,
                   ),
@@ -590,7 +590,7 @@ class _CustomVideoControlsOverlayState extends State<CustomVideoControlsOverlay>
                           ? Duration(seconds: _scrubbingSeconds.toInt())
                           : widget.currentPosition,
                     ),
-                    style: GoogleFonts.outfit(
+                    style: GoogleFonts.poppins(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
@@ -598,7 +598,7 @@ class _CustomVideoControlsOverlayState extends State<CustomVideoControlsOverlay>
                   ),
                   Text(
                     ' / ${_formatDuration(widget.totalDuration)}',
-                    style: GoogleFonts.outfit(
+                    style: GoogleFonts.poppins(
                       fontSize: 11,
                       color: Colors.white54,
                     ),
@@ -614,7 +614,7 @@ class _CustomVideoControlsOverlayState extends State<CustomVideoControlsOverlay>
                       ),
                       child: Text(
                         '${widget.playbackSpeed}x',
-                        style: GoogleFonts.outfit(
+                        style: GoogleFonts.poppins(
                           fontSize: 9,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
@@ -762,3 +762,4 @@ class _CustomVideoControlsOverlayState extends State<CustomVideoControlsOverlay>
     );
   }
 }
+

@@ -4,15 +4,30 @@ class AppConstants {
   static const String appTagline = 'Discover Movies, Trailers & TV Shows';
   static const String appVersion = '1.0.0';
   
-  // Developer Credit
+  // Developer Credit & Legal
   static const String developerName = 'Saad Afridi';
   static const String developerCreditText = 'Developed by Saad Afridi';
-  static const String developerFooter = 'Developed by Saad Afridi ❤️ in Flutter';
+  static const String developerFooter = 'Made with ❤️ in Flutter by Saad Afridi';
+  static String get copyrightNotice => '© ${DateTime.now().year} $developerName. All rights reserved.';
+
+  // Legal & Attribution Disclaimers
+  static const String contentDisclaimer =
+      'Movie posters, images, trailers and descriptions belong to their respective owners. Trailers are streamed from YouTube. This app does not host or stream full movies.';
+  static const String omdbAttribution =
+      'Movie ratings, IMDb scores, and Rotten Tomatoes metrics powered by OMDb API.';
+  static const String tmdbWebUrl = 'https://www.themoviedb.org';
+  static const String supportEmail = 'msaadafridi42@gmail.com';
+  static const String githubUrl = 'https://github.com/Msaadafridi11/Movie_app';
+  static const String privacyPolicyUrl =
+      'https://msaadafridi11.github.io/Movie_app/privacy_policy.html';
+  static const String termsOfUseUrl =
+      'https://msaadafridi11.github.io/Movie_app/terms_of_use.html';
 
   // Local Storage Keys
   static const String favoritesStorageKey = 'cineflix_favorites_v1';
   static const String themeStorageKey = 'cineflix_theme_mode_v1';
   static const String cachedFeedKey = 'cineflix_feed_cache_v1';
+  static const String onboardingCompletedKey = 'cineflix_onboarding_completed_v1';
 
   // TMDB Genre Map (Id to Name)
   static const Map<int, String> genreMap = {

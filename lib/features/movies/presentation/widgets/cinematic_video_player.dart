@@ -142,3 +142,4 @@ class CinematicVideoPlayer extends StatelessWidget {
     );
   }
 }
+

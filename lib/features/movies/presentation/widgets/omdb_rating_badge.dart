@@ -101,7 +101,7 @@ class OmdbRatingBadgeRow extends StatelessWidget {
           const SizedBox(width: 5),
           Text(
             label,
-            style: GoogleFonts.outfit(
+            style: GoogleFonts.poppins(
               fontSize: 11,
               fontWeight: FontWeight.w500,
               color: isDark ? Colors.white70 : Colors.black54,
@@ -110,7 +110,7 @@ class OmdbRatingBadgeRow extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             value,
-            style: GoogleFonts.outfit(
+            style: GoogleFonts.poppins(
               fontSize: 12,
               fontWeight: FontWeight.bold,
               color: isDark ? Colors.white : Colors.black87,
@@ -120,7 +120,7 @@ class OmdbRatingBadgeRow extends StatelessWidget {
             const SizedBox(width: 3),
             Text(
               subtitle,
-              style: GoogleFonts.outfit(
+              style: GoogleFonts.poppins(
                 fontSize: 10,
                 color: isDark ? Colors.white38 : Colors.black38,
               ),
@@ -131,3 +131,4 @@ class OmdbRatingBadgeRow extends StatelessWidget {
     );
   }
 }
+

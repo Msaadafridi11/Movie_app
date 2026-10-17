@@ -112,7 +112,7 @@ class FriendlyVideoErrorCard extends StatelessWidget {
                   // Heading
                   Text(
                     "This video can't be played here",
-                    style: GoogleFonts.outfit(
+                    style: GoogleFonts.poppins(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
@@ -126,7 +126,7 @@ class FriendlyVideoErrorCard extends StatelessWidget {
                     errorMessage.isNotEmpty
                         ? errorMessage
                         : 'Playback is restricted by the content owner for embedded players.',
-                    style: GoogleFonts.outfit(
+                    style: GoogleFonts.poppins(
                       fontSize: 12,
                       color: Colors.white70,
                       height: 1.3,
@@ -161,7 +161,7 @@ class FriendlyVideoErrorCard extends StatelessWidget {
                           icon: const Icon(Icons.open_in_new_rounded, size: 16),
                           label: Text(
                             'Watch on YouTube',
-                            style: GoogleFonts.outfit(
+                            style: GoogleFonts.poppins(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
                             ),
@@ -187,7 +187,7 @@ class FriendlyVideoErrorCard extends StatelessWidget {
                           icon: const Icon(Icons.skip_next_rounded, size: 16),
                           label: Text(
                             'Try Next Video',
-                            style: GoogleFonts.outfit(
+                            style: GoogleFonts.poppins(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
                             ),
@@ -211,7 +211,7 @@ class FriendlyVideoErrorCard extends StatelessWidget {
                         icon: const Icon(Icons.refresh_rounded, size: 16),
                         label: Text(
                           'Retry',
-                          style: GoogleFonts.outfit(
+                          style: GoogleFonts.poppins(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                           ),
@@ -229,3 +229,4 @@ class FriendlyVideoErrorCard extends StatelessWidget {
     );
   }
 }
+

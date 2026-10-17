@@ -1,3 +1,4 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'api_keys.dart';
 
 /// API Constants for The Movie Database (TMDB) and Open Movie Database (OMDb)
@@ -8,17 +9,23 @@ class ApiConstants {
   // OMDb Base URL
   static const String omdbBaseUrl = 'https://www.omdbapi.com';
 
-  /// TMDB v3 API Key (loaded from git-ignored api_keys.dart or dart-define)
-  static const String apiKey = String.fromEnvironment(
-    'TMDB_API_KEY',
-    defaultValue: ApiKeys.tmdbApiKey,
-  );
+  /// TMDB v3 API Key (loaded from git-ignored .env, --dart-define, or ApiKeys fallback)
+  static String get apiKey {
+    final envKey = dotenv.isInitialized ? dotenv.env['TMDB_API_KEY'] : null;
+    if (envKey != null && envKey.isNotEmpty) return envKey;
+    const dartDefineKey = String.fromEnvironment('TMDB_API_KEY');
+    if (dartDefineKey.isNotEmpty) return dartDefineKey;
+    return ApiKeys.tmdbApiKey;
+  }
 
   /// OMDb API Key (optional, for IMDb / Rotten Tomatoes scores)
-  static const String omdbApiKey = String.fromEnvironment(
-    'OMDB_API_KEY',
-    defaultValue: ApiKeys.omdbApiKey,
-  );
+  static String get omdbApiKey {
+    final envKey = dotenv.isInitialized ? dotenv.env['OMDB_API_KEY'] : null;
+    if (envKey != null && envKey.isNotEmpty) return envKey;
+    const dartDefineKey = String.fromEnvironment('OMDB_API_KEY');
+    if (dartDefineKey.isNotEmpty) return dartDefineKey;
+    return ApiKeys.omdbApiKey;
+  }
 
   // Image base URLs
   static const String imageBaseUrlW92 = 'https://image.tmdb.org/t/p/w92';

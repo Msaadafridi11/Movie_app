@@ -105,3 +105,4 @@ class GenreChips extends StatelessWidget {
     );
   }
 }
+

@@ -29,7 +29,7 @@ class WatchProvidersSection extends StatelessWidget {
                 const SizedBox(width: 8),
                 Text(
                   'Where to Watch',
-                  style: GoogleFonts.outfit(
+                  style: GoogleFonts.poppins(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: isDark ? Colors.white : Colors.black87,
@@ -39,7 +39,7 @@ class WatchProvidersSection extends StatelessWidget {
             ),
             Text(
               'Powered by JustWatch',
-              style: GoogleFonts.outfit(
+              style: GoogleFonts.poppins(
                 fontSize: 10,
                 color: isDark ? Colors.white38 : Colors.black38,
               ),
@@ -98,7 +98,7 @@ class WatchProvidersSection extends StatelessWidget {
                       ),
                       child: Text(
                         provider.typeLabel.toUpperCase(),
-                        style: GoogleFonts.outfit(
+                        style: GoogleFonts.poppins(
                           fontSize: 9,
                           fontWeight: FontWeight.bold,
                           color: _badgeColor(provider.type),
@@ -129,3 +129,4 @@ class WatchProvidersSection extends StatelessWidget {
     }
   }
 }
+

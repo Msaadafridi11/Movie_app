@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:movie_app/core/theme/app_colors.dart';
+import 'package:movie_app/core/theme/app_dimens.dart';
+import 'package:movie_app/core/theme/app_text_styles.dart';
 import 'package:movie_app/features/movies/presentation/screens/favorites_screen.dart';
 import 'package:movie_app/features/movies/presentation/screens/home_screen.dart';
 import 'package:movie_app/features/movies/presentation/screens/search_screen.dart';
@@ -9,7 +10,7 @@ import 'package:movie_app/features/movies/presentation/screens/settings_screen.d
 import 'package:movie_app/features/movies/presentation/viewmodels/navigation_viewmodel.dart';
 import 'package:movie_app/features/movies/presentation/widgets/app_drawer.dart';
 
-/// Main navigation shell with bottom navigation bar and indexed stack
+/// Main navigation shell with 4-tab bottom navigation bar and accessible 48dp touch targets
 class MainNavScreen extends StatelessWidget {
   const MainNavScreen({super.key});
 
@@ -37,7 +38,7 @@ class MainNavScreen extends StatelessWidget {
           color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.08),
+              color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.08),
               blurRadius: 16,
               offset: const Offset(0, -4),
             ),
@@ -45,7 +46,10 @@ class MainNavScreen extends StatelessWidget {
         ),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppDimens.space8,
+              vertical: AppDimens.space6,
+            ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
@@ -70,8 +74,8 @@ class MainNavScreen extends StatelessWidget {
                 _buildNavItem(
                   context: context,
                   index: 2,
-                  icon: Icons.bookmark_rounded,
-                  label: 'Watchlist',
+                  icon: Icons.favorite_rounded,
+                  label: 'Favorites',
                   isSelected: currentIndex == 2,
                   onTap: () => navViewModel.setIndex(2),
                   isDark: isDark,
@@ -102,43 +106,52 @@ class MainNavScreen extends StatelessWidget {
     required VoidCallback onTap,
     required bool isDark,
   }) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(20),
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        padding: EdgeInsets.symmetric(
-          horizontal: isSelected ? 16 : 12,
-          vertical: 8,
+    return Semantics(
+      label: '$label tab',
+      selected: isSelected,
+      button: true,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(
+          minWidth: AppDimens.minTouchTarget,
+          minHeight: AppDimens.minTouchTarget,
         ),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.primary.withValues(alpha: 0.15)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 22,
-              color: isSelected
-                  ? AppColors.primary
-                  : (isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted),
+        child: InkWell(
+          borderRadius: AppDimens.borderRadiusFull,
+          onTap: onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 250),
+            padding: EdgeInsets.symmetric(
+              horizontal: isSelected ? AppDimens.space16 : AppDimens.space12,
+              vertical: AppDimens.space8,
             ),
-            if (isSelected) ...[
-              const SizedBox(width: 8),
-              Text(
-                label,
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.primary,
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? AppColors.primary.withValues(alpha: 0.15)
+                  : Colors.transparent,
+              borderRadius: AppDimens.borderRadiusFull,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  icon,
+                  size: 22,
+                  color: isSelected
+                      ? AppColors.primary
+                      : (isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted),
                 ),
-              ),
-            ],
-          ],
+                if (isSelected) ...[
+                  const SizedBox(width: AppDimens.space8),
+                  Text(
+                    label,
+                    style: AppTextStyles.labelMedium(
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
         ),
       ),
     );

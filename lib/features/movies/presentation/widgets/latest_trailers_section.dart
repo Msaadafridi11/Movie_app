@@ -39,7 +39,7 @@ class LatestTrailersSection extends StatelessWidget {
                   const SizedBox(width: 8),
                   Text(
                     'Latest Trailers',
-                    style: GoogleFonts.outfit(
+                    style: GoogleFonts.poppins(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: isDark ? Colors.white : Colors.black87,
@@ -55,7 +55,7 @@ class LatestTrailersSection extends StatelessWidget {
                 ),
                 child: Text(
                   'HOT',
-                  style: GoogleFonts.outfit(
+                  style: GoogleFonts.poppins(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                     color: AppColors.primary,
@@ -193,7 +193,7 @@ class LatestTrailersSection extends StatelessWidget {
                               ),
                               child: Text(
                                 trailer != null ? 'TRAILER' : 'HD',
-                                style: GoogleFonts.outfit(
+                                style: GoogleFonts.poppins(
                                   fontSize: 9,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
@@ -208,7 +208,7 @@ class LatestTrailersSection extends StatelessWidget {
                         padding: const EdgeInsets.all(8),
                         child: Text(
                           movie.title,
-                          style: GoogleFonts.outfit(
+                          style: GoogleFonts.poppins(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                             color: isDark ? Colors.white : Colors.black87,
@@ -228,3 +228,4 @@ class LatestTrailersSection extends StatelessWidget {
     );
   }
 }
+

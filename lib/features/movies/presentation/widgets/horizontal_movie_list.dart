@@ -109,3 +109,4 @@ class HorizontalMovieList extends StatelessWidget {
     );
   }
 }
+

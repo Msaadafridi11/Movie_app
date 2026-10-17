@@ -236,3 +236,4 @@ class _FeaturedCarouselState extends State<FeaturedCarousel> {
     );
   }
 }
+

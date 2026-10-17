@@ -130,7 +130,7 @@ class InlineVideoPlayer extends StatelessWidget {
                     const SizedBox(width: 6),
                     Text(
                       hasTrailer ? 'Play Official Trailer' : 'Trailer Unavailable',
-                      style: GoogleFonts.outfit(
+                      style: GoogleFonts.poppins(
                         color: Colors.white,
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
@@ -147,3 +147,4 @@ class InlineVideoPlayer extends StatelessWidget {
     );
   }
 }
+

@@ -96,7 +96,7 @@ class VideoSettingsModal extends StatelessWidget {
                     const SizedBox(width: 8),
                     Text(
                       'Playback Settings',
-                      style: GoogleFonts.outfit(
+                      style: GoogleFonts.poppins(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
@@ -115,7 +115,7 @@ class VideoSettingsModal extends StatelessWidget {
             // Quality Section
             Text(
               'STREAMING QUALITY',
-              style: GoogleFonts.outfit(
+              style: GoogleFonts.poppins(
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 1.2,
@@ -140,7 +140,7 @@ class VideoSettingsModal extends StatelessWidget {
                       children: [
                         Text(
                           'Quality: Auto ($currentQuality)',
-                          style: GoogleFonts.outfit(
+                          style: GoogleFonts.poppins(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: Colors.white,
@@ -148,7 +148,7 @@ class VideoSettingsModal extends StatelessWidget {
                         ),
                         Text(
                           'YouTube IFrame dynamically adapts resolution to network speed.',
-                          style: GoogleFonts.outfit(
+                          style: GoogleFonts.poppins(
                             fontSize: 11,
                             color: Colors.white54,
                           ),
@@ -164,7 +164,7 @@ class VideoSettingsModal extends StatelessWidget {
                     ),
                     child: Text(
                       'AUTO',
-                      style: GoogleFonts.outfit(
+                      style: GoogleFonts.poppins(
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
                         color: AppColors.primary,
@@ -179,7 +179,7 @@ class VideoSettingsModal extends StatelessWidget {
             // Playback Speed Section
             Text(
               'PLAYBACK SPEED',
-              style: GoogleFonts.outfit(
+              style: GoogleFonts.poppins(
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 1.2,
@@ -202,7 +202,7 @@ class VideoSettingsModal extends StatelessWidget {
                       selected: isSelected,
                       selectedColor: AppColors.primary,
                       backgroundColor: Colors.white.withValues(alpha: 0.06),
-                      labelStyle: GoogleFonts.outfit(
+                      labelStyle: GoogleFonts.poppins(
                         fontSize: 12,
                         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                         color: isSelected ? Colors.white : Colors.white70,
@@ -238,13 +238,13 @@ class VideoSettingsModal extends StatelessWidget {
                     contentPadding: const EdgeInsets.symmetric(horizontal: 14),
                     title: Text(
                       'Loop Current Video',
-                      style: GoogleFonts.outfit(fontSize: 14, color: Colors.white),
+                      style: GoogleFonts.poppins(fontSize: 14, color: Colors.white),
                     ),
                     subtitle: Text(
                       isLooping
                           ? 'Repeat single video indefinitely'
                           : 'Autoplay next video when finished',
-                      style: GoogleFonts.outfit(fontSize: 11, color: Colors.white54),
+                      style: GoogleFonts.poppins(fontSize: 11, color: Colors.white54),
                     ),
                     value: isLooping,
                     onChanged: (val) {
@@ -258,11 +258,11 @@ class VideoSettingsModal extends StatelessWidget {
                     contentPadding: const EdgeInsets.symmetric(horizontal: 14),
                     title: Text(
                       'Closed Captions / Subtitles',
-                      style: GoogleFonts.outfit(fontSize: 14, color: Colors.white),
+                      style: GoogleFonts.poppins(fontSize: 14, color: Colors.white),
                     ),
                     subtitle: Text(
                       isCaptionsEnabled ? 'Subtitles enabled' : 'Subtitles disabled',
-                      style: GoogleFonts.outfit(fontSize: 11, color: Colors.white54),
+                      style: GoogleFonts.poppins(fontSize: 11, color: Colors.white54),
                     ),
                     value: isCaptionsEnabled,
                     onChanged: (val) {
@@ -279,3 +279,4 @@ class VideoSettingsModal extends StatelessWidget {
     );
   }
 }
+

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:movie_app/core/constants/app_constants.dart';
 import 'package:movie_app/core/theme/app_colors.dart';
+import 'package:movie_app/core/theme/app_text_styles.dart';
 import 'package:movie_app/core/utils/page_transitions.dart';
 import 'package:movie_app/features/movies/presentation/screens/main_nav_screen.dart';
+import 'package:movie_app/features/movies/presentation/screens/onboarding_screen.dart';
 
 /// Premium cinematic Splash screen with glowing animated logo and developer credit
 class SplashScreen extends StatefulWidget {
@@ -18,10 +21,13 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   late final Animation<double> _scaleAnimation;
   late final Animation<double> _fadeAnimation;
   late final Animation<double> _textFadeAnimation;
+  String _appVersion = AppConstants.appVersion;
 
   @override
   void initState() {
     super.initState();
+    _loadPackageInfo();
+
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2000),
@@ -50,14 +56,43 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
     _controller.forward();
 
-    // Navigate to MainNavScreen after animation completes
-    Future.delayed(const Duration(milliseconds: 2600), () {
-      if (!mounted) return;
+    // Check first launch onboarding state & navigate
+    _navigateNext();
+  }
+
+  Future<void> _loadPackageInfo() async {
+    try {
+      final info = await PackageInfo.fromPlatform();
+      if (mounted) {
+        setState(() {
+          _appVersion = info.version;
+        });
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _navigateNext() async {
+    await Future.delayed(const Duration(milliseconds: 2500));
+    if (!mounted) return;
+
+    bool isOnboarded = false;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      isOnboarded = prefs.getBool(AppConstants.onboardingCompletedKey) ?? false;
+    } catch (_) {}
+
+    if (!mounted) return;
+    if (isOnboarded) {
       Navigator.pushReplacement(
         context,
         FadeSlidePageRoute(page: const MainNavScreen()),
       );
-    });
+    } else {
+      Navigator.pushReplacement(
+        context,
+        FadeSlidePageRoute(page: const OnboardingScreen()),
+      );
+    }
   }
 
   @override
@@ -129,11 +164,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                         // App Name
                         Text(
                           AppConstants.appName,
-                          style: GoogleFonts.poppins(
-                            fontSize: 34,
-                            fontWeight: FontWeight.w800,
+                          style: AppTextStyles.displayLarge(
                             color: Colors.white,
-                            letterSpacing: 1.5,
                           ),
                         ),
                         const SizedBox(height: 6),
@@ -141,10 +173,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                         // Tagline
                         Text(
                           AppConstants.appTagline,
-                          style: GoogleFonts.poppins(
-                            fontSize: 13,
+                          style: AppTextStyles.bodyMedium(
                             color: AppColors.darkTextSecondary,
-                            letterSpacing: 0.5,
                           ),
                         ),
                       ],
@@ -166,18 +196,14 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                 children: [
                   Text(
                     AppConstants.developerCreditText,
-                    style: GoogleFonts.poppins(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
+                    style: AppTextStyles.labelLarge(
                       color: Colors.white,
-                      letterSpacing: 0.8,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Built with Flutter & Clean Architecture',
-                    style: GoogleFonts.poppins(
-                      fontSize: 11,
+                    '${AppConstants.appName} v$_appVersion • Clean Architecture & Flutter',
+                    style: AppTextStyles.labelSmall(
                       color: AppColors.darkTextMuted,
                     ),
                   ),

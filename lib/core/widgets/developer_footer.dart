@@ -43,8 +43,8 @@ class DeveloperFooter extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(
-            Icons.code_rounded,
+          Icon(
+            showHeart ? Icons.favorite_rounded : Icons.code_rounded,
             size: 16,
             color: AppColors.primary,
           ),

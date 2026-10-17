@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:movie_app/core/constants/app_constants.dart';
 import 'package:movie_app/core/theme/app_colors.dart';
+import 'package:movie_app/core/theme/app_dimens.dart';
+import 'package:movie_app/core/theme/app_text_styles.dart';
 import 'package:movie_app/core/widgets/developer_footer.dart';
 import 'package:movie_app/features/movies/presentation/viewmodels/navigation_viewmodel.dart';
 
-/// Navigation Drawer with App info and Developer Credit badge
+/// Navigation Drawer with App branding and Developer Credit
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
 
@@ -22,7 +23,10 @@ class AppDrawer extends StatelessWidget {
           children: [
             // Drawer Header
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppDimens.space20,
+                vertical: AppDimens.space24,
+              ),
               decoration: BoxDecoration(
                 border: Border(
                   bottom: BorderSide(
@@ -37,7 +41,7 @@ class AppDrawer extends StatelessWidget {
                     height: 48,
                     decoration: BoxDecoration(
                       gradient: AppColors.brandGradient,
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: AppDimens.borderRadiusMd,
                       boxShadow: [
                         BoxShadow(
                           color: AppColors.primary.withValues(alpha: 0.4),
@@ -54,22 +58,19 @@ class AppDrawer extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 14),
+                  const SizedBox(width: AppDimens.space14),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         AppConstants.appName,
-                        style: GoogleFonts.poppins(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+                        style: AppTextStyles.headlineMedium(
                           color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
                         ),
                       ),
                       Text(
                         'v${AppConstants.appVersion}',
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
+                        style: AppTextStyles.bodySmall(
                           color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
                         ),
                       ),
@@ -79,7 +80,7 @@ class AppDrawer extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 12),
+            const SizedBox(height: AppDimens.space12),
 
             // Navigation Items
             _buildDrawerTile(
@@ -104,8 +105,8 @@ class AppDrawer extends StatelessWidget {
             ),
             _buildDrawerTile(
               context: context,
-              icon: Icons.bookmark_rounded,
-              label: 'Watchlist / Favorites',
+              icon: Icons.favorite_rounded,
+              label: 'Favorites',
               isSelected: navViewModel.currentIndex == 2,
               onTap: () {
                 navViewModel.setIndex(2);
@@ -127,13 +128,13 @@ class AppDrawer extends StatelessWidget {
 
             // Developer Credit Card
             Container(
-              margin: const EdgeInsets.all(16),
-              padding: const EdgeInsets.all(16),
+              margin: const EdgeInsets.all(AppDimens.space16),
+              padding: const EdgeInsets.all(AppDimens.space16),
               decoration: BoxDecoration(
                 color: isDark ? AppColors.darkCard : AppColors.lightCard,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: AppDimens.borderRadiusLg,
                 border: Border.all(
-                  color: AppColors.primary.withValues(alpha: 0.3),
+                  color: AppColors.primary.withValues(alpha: 0.25),
                   width: 1,
                 ),
                 boxShadow: [
@@ -146,44 +147,14 @@ class AppDrawer extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 18,
-                        backgroundColor: AppColors.primary.withValues(alpha: 0.2),
-                        child: const Icon(
-                          Icons.person_outline_rounded,
-                          color: AppColors.primary,
-                          size: 20,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              AppConstants.developerCreditText,
-                              style: GoogleFonts.poppins(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
-                              ),
-                            ),
-                            Text(
-                              'Senior Flutter Engineer',
-                              style: GoogleFonts.poppins(
-                                fontSize: 11,
-                                color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
                   const DeveloperFooter(showHeart: true),
+                  const SizedBox(height: AppDimens.space8),
+                  Text(
+                    'Built with Clean Architecture & MVVM',
+                    style: AppTextStyles.labelSmall(
+                      color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -203,24 +174,34 @@ class AppDrawer extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppDimens.space12,
+        vertical: AppDimens.space4,
+      ),
       child: ListTile(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        tileColor: isSelected ? AppColors.primary.withValues(alpha: 0.15) : Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: AppDimens.borderRadiusMd,
+        ),
+        tileColor: isSelected
+            ? AppColors.primary.withValues(alpha: 0.12)
+            : Colors.transparent,
         leading: Icon(
           icon,
-          color: isSelected ? AppColors.primary : (isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
+          color: isSelected
+              ? AppColors.primary
+              : (isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary),
         ),
         title: Text(
           label,
-          style: GoogleFonts.poppins(
-            fontSize: 14,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-            color: isSelected ? AppColors.primary : (isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary),
-          ),
+          style: isSelected
+              ? AppTextStyles.titleMedium(color: AppColors.primary)
+              : AppTextStyles.bodyMedium(
+                  color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
+                ),
         ),
         onTap: onTap,
       ),
     );
   }
 }
+

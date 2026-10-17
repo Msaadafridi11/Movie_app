@@ -25,7 +25,7 @@ class ImageGallerySection extends StatelessWidget {
             const SizedBox(width: 8),
             Text(
               'Photo Gallery',
-              style: GoogleFonts.outfit(
+              style: GoogleFonts.poppins(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: isDark ? Colors.white : Colors.black87,
@@ -101,3 +101,4 @@ class ImageGallerySection extends StatelessWidget {
     );
   }
 }
+

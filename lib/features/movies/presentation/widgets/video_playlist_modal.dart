@@ -76,7 +76,7 @@ class VideoPlaylistModal extends StatelessWidget {
                     const SizedBox(width: 8),
                     Text(
                       'Promotional Videos (${videos.length})',
-                      style: GoogleFonts.outfit(
+                      style: GoogleFonts.poppins(
                         fontSize: 17,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
@@ -155,7 +155,7 @@ class VideoPlaylistModal extends StatelessWidget {
                                 ),
                                 child: Text(
                                   video.categoryBadge,
-                                  style: GoogleFonts.outfit(
+                                  style: GoogleFonts.poppins(
                                     fontSize: 8,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.white,
@@ -186,7 +186,7 @@ class VideoPlaylistModal extends StatelessWidget {
                             children: [
                               Text(
                                 video.name,
-                                style: GoogleFonts.outfit(
+                                style: GoogleFonts.poppins(
                                   fontSize: 13,
                                   fontWeight: isPlaying ? FontWeight.bold : FontWeight.w500,
                                   color: isPlaying ? AppColors.primary : Colors.white,
@@ -207,13 +207,13 @@ class VideoPlaylistModal extends StatelessWidget {
                                       ),
                                       child: Text(
                                         'OFFICIAL',
-                                        style: GoogleFonts.outfit(fontSize: 8, color: Colors.white70),
+                                        style: GoogleFonts.poppins(fontSize: 8, color: Colors.white70),
                                       ),
                                     ),
                                   if (isFailed)
                                     Text(
                                       'Restricted',
-                                      style: GoogleFonts.outfit(
+                                      style: GoogleFonts.poppins(
                                         fontSize: 10,
                                         color: Colors.redAccent,
                                         fontWeight: FontWeight.bold,
@@ -242,3 +242,4 @@ class VideoPlaylistModal extends StatelessWidget {
     );
   }
 }
+

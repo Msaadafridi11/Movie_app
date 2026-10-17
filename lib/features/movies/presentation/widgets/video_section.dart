@@ -48,7 +48,7 @@ class _VideoSectionState extends State<VideoSection> {
                 const SizedBox(width: 8),
                 Text(
                   'Videos & Trailers',
-                  style: GoogleFonts.outfit(
+                  style: GoogleFonts.poppins(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: isDark ? Colors.white : Colors.black87,
@@ -58,7 +58,7 @@ class _VideoSectionState extends State<VideoSection> {
             ),
             Text(
               '${allVideos.length} Available',
-              style: GoogleFonts.outfit(
+              style: GoogleFonts.poppins(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
                 color: isDark ? Colors.white54 : Colors.black54,
@@ -91,7 +91,7 @@ class _VideoSectionState extends State<VideoSection> {
               ? Center(
                   child: Text(
                     'No videos in this category.',
-                    style: GoogleFonts.outfit(
+                    style: GoogleFonts.poppins(
                       fontSize: 13,
                       color: isDark ? Colors.white38 : Colors.black38,
                     ),
@@ -204,7 +204,7 @@ class _VideoSectionState extends State<VideoSection> {
                                     ),
                                     child: Text(
                                       video.categoryBadge,
-                                      style: GoogleFonts.outfit(
+                                      style: GoogleFonts.poppins(
                                         fontSize: 9,
                                         fontWeight: FontWeight.bold,
                                         color: isCurrentPlaying
@@ -235,7 +235,7 @@ class _VideoSectionState extends State<VideoSection> {
                                           const SizedBox(width: 3),
                                           Text(
                                             'PLAYING',
-                                            style: GoogleFonts.outfit(
+                                            style: GoogleFonts.poppins(
                                               fontSize: 9,
                                               fontWeight: FontWeight.bold,
                                               color: Colors.white,
@@ -258,7 +258,7 @@ class _VideoSectionState extends State<VideoSection> {
                                       ),
                                       child: Text(
                                         'RESTRICTED',
-                                        style: GoogleFonts.outfit(
+                                        style: GoogleFonts.poppins(
                                           fontSize: 8,
                                           fontWeight: FontWeight.bold,
                                           color: Colors.white,
@@ -274,7 +274,7 @@ class _VideoSectionState extends State<VideoSection> {
                               padding: const EdgeInsets.all(8),
                               child: Text(
                                 video.name,
-                                style: GoogleFonts.outfit(
+                                style: GoogleFonts.poppins(
                                   fontSize: 12,
                                   fontWeight: isCurrentPlaying
                                       ? FontWeight.bold
@@ -326,7 +326,7 @@ class _VideoSectionState extends State<VideoSection> {
           ),
           child: Text(
             label,
-            style: GoogleFonts.outfit(
+            style: GoogleFonts.poppins(
               fontSize: 12,
               fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
               color: isSelected
@@ -339,3 +339,4 @@ class _VideoSectionState extends State<VideoSection> {
     );
   }
 }
+
